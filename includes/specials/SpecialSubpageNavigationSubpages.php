@@ -100,7 +100,8 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 				$ts = $this->getCachedTimestamp();
 				$lang = $this->getLanguage();
 				$maxResults = $lang->formatNum( $this->getConfig()->get(
-					MainConfigNames::QueryCacheLimit ) );
+					// ***edited
+					class_exists( 'MainConfigNames' ) ? MainConfigNames::QueryCacheLimit : 'QueryCacheLimit' ) );
 
 				if ( $ts ) {
 					$user = $this->getUser();
@@ -152,7 +153,9 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 					min( $this->numRows, $this->limit ), // do not show the one extra row, if exist
 					$this->offset + 1, ( min( $this->numRows, $this->limit ) + $this->offset ) )->parseAsBlock() );
 				// Disable the "next" link when we reach the end
-				$miserMaxResults = $this->getConfig()->get( MainConfigNames::MiserMode )
+				$miserMaxResults = $this->getConfig()->get(
+					// ***edited
+					class_exists( 'MainConfigNames' ) ? MainConfigNames::MiserMode : 'MiserMode' )
 					&& ( $this->offset + $this->limit >= $this->getMaxResults() );
 				$atEnd = ( $this->numRows <= $this->limit ) || $miserMaxResults;
 				$paging = $this->buildPrevNextNavigation( $this->offset,
