@@ -1,0 +1,61 @@
+{
+	"name": "SubpageNavigation",
+	"author": "thomas-topway-it",
+	"version": "1.0",
+	"url": "https://www.mediawiki.org/wiki/Extension:SubpageNavigation",
+	"descriptionmsg": "subpagenavigation-extension-desc",
+	"license-name": "GPL-2.0-or-later",
+	"requires": {
+		"MediaWiki": ">= 1.35.0"
+	},
+	"MessagesDirs": {
+		"SubpageNavigation": [
+			"i18n"
+		]
+	},
+	"callback": "SubpageNavigationHooks::onRegistration",
+	"AutoloadClasses": {
+		"SubpageNavigationHooks": "includes/SubpageNavigationHooks.php",
+		"SubpageNavigation": "includes/SubpageNavigation.php",
+		"SpecialSubpageNavigationSubpages": "includes/specials/SpecialSubpageNavigationSubpages.php",
+		"SubpageNavigationApiCheckLatestVersion": "includes/api/SubpageNavigationApiCheckLatestVersion.php"
+	},
+	"ExtensionMessagesFiles": {
+		"SubpageNavigationAlias": "SubpageNavigation.alias.php",
+		"SubpageNavigationMagic": "SubpageNavigationMagic.i18n.magic.php"
+	},
+	"Hooks": {
+		"BeforeInitialize": "SubpageNavigationHooks::onBeforeInitialize",
+		"MediaWikiServices": "SubpageNavigationHooks::onMediaWikiServices",
+		"BeforePageDisplay": "SubpageNavigationHooks::onBeforePageDisplay",
+		"ArticleViewNavigation": "SubpageNavigationHooks::onArticleViewNavigation",
+		"SkinSubPageSubtitle": "SubpageNavigationHooks::onSkinSubPageSubtitle"
+	},
+	"SpecialPages": {
+		"SubpageNavigationSubpages": "SpecialSubpageNavigationSubpages"
+	},
+	"APIModules": {
+		"SubpageNavigation-check-latest-version": "SubpageNavigationApiCheckLatestVersion"
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "SubpageNavigation/resources"
+	},
+	"ResourceModules": {
+		"ext.SubpageNavigationSubpages": {
+			"position": "top",
+			"scripts": [
+				"SubpageNavigation.js"
+			],
+			"styles": [
+				"style.css"
+			],
+			"dependencies": [
+				"mediawiki.action.edit.collapsibleFooter"
+			],
+			"messages": [
+			]
+		}
+	},
+	"manifest_version": 1
+}

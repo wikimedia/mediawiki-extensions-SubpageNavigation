@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"subpagenavigation-extension-desc": "Shows direct children of current page in article navigation",
+	"specialpages-group-subpagenavigation": "Subpage Navigation",
+	"subpagenavigationsubpages": "Subpage Navigation",
+	"subpagenavigation-list-explanation": "Subpages: ",
+	"subpagenavigation-specialsubpages-return": "← [[$1|$2]]",
+	"subpagenavigation-specialsubpages-root": "<em>root</em>",
+	"subpagenavigation-list-show-all": "show all..."
+}

@@ -1,0 +1,40 @@
+.subpageslist-list_ {
+	list-style: none;
+}
+
+.mw-indicators {
+	float: none;
+	display: block;
+	margin-left: 0;
+}
+
+.mw-indicators > * {
+	float: right;
+}
+
+#mw-indicator-subpage-navigation {
+	font-size: smaller;
+	float: none;
+	margin-bottom: 12px;
+}
+
+.subpage-navigation-list.incomplete li:last-child {
+	list-style-type: none;
+	list-style-image: none;
+	padding-top: 8px;
+	margin-left: -16px;
+}
+
+.subpageNavigation {
+    background-color: #f8f9fa;
+    display: table;
+    border-bottom: 1px dotted #a2a9b1;
+    box-sizing: border-box;
+    /* line-height: 1.2; */
+    width: 100%;
+    clear: both;
+    overflow: auto;
+    padding: 4px;
+    margin-bottom: 1.5em;
+}
+
