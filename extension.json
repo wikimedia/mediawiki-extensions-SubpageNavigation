@@ -17,8 +17,7 @@
 	"AutoloadClasses": {
 		"SubpageNavigationHooks": "includes/SubpageNavigationHooks.php",
 		"SubpageNavigation": "includes/SubpageNavigation.php",
-		"SpecialSubpageNavigationSubpages": "includes/specials/SpecialSubpageNavigationSubpages.php",
-		"SubpageNavigationApiCheckLatestVersion": "includes/api/SubpageNavigationApiCheckLatestVersion.php"
+		"SpecialSubpageNavigationSubpages": "includes/specials/SpecialSubpageNavigationSubpages.php"
 	},
 	"ExtensionMessagesFiles": {
 		"SubpageNavigationAlias": "SubpageNavigation.alias.php",
@@ -35,7 +34,6 @@
 		"SubpageNavigationSubpages": "SpecialSubpageNavigationSubpages"
 	},
 	"APIModules": {
-		"SubpageNavigation-check-latest-version": "SubpageNavigationApiCheckLatestVersion"
 	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",

@@ -21,10 +21,7 @@
  * @copyright Copyright ©2023, https://wikisphere.org
  */
 
-use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Logger\LoggerFactory;
-use Psr\Log\NullLogger;
 
 class SubpageNavigationHooks {
 
