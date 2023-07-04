@@ -155,6 +155,10 @@ class SubpageNavigation {
 			$growinglink .= '/';
 		}
 
+		if ( !count( $arr ) ) {
+			return false;
+		}
+
 		$title = Title::newFromText( $strStrip );
 		if ( is_object( $title ) && $title->isKnown() ) {
 			array_pop( $arr );
