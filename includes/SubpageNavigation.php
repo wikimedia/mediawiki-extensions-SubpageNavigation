@@ -104,8 +104,15 @@ class SubpageNavigation {
 		$specialPages = SpecialPage::getTitleFor( 'SpecialPages' );
 		if ( $title->isSpecialPage() && $title->getFullText() !== $specialPages->getFullText() ) {
 			$specialPageFactory = $services->getSpecialPageFactory();
+			$page = $specialPageFactory->getPage( $titleText );
+
+			// invalid special page
+			if ( !$page ) {
+				return false;
+			}
+
 			return $linkRenderer->makeKnownLink( $specialPages, $specialPageFactory->getPage( 'SpecialPages' )->getDescription() )
-				. $separator . $specialPageFactory->getPage( $titleText )->getDescription();
+				. $separator . $page->getDescription();
 		}
 
 		if ( false === self::parseSubpage( $titleText, $current, $links ) ) {
