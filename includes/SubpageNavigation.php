@@ -35,6 +35,10 @@ class SubpageNavigation {
 	 * @return bool
 	 */
 	public static function breadcrumbIsEnabled( $skin ) {
+		if ( !empty( $GLOBALS['wgSubpageNavigationDisableBreadcrumb'] ) ) {
+			return false;
+		}
+
 		$skinName = $skin->getSkinName();
 		// @TODO adjust as needed
 		return ( $skinName !== 'vector-2022' );
