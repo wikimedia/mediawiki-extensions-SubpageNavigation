@@ -38,7 +38,7 @@ class SubpageNavigation {
 		if ( !empty( $GLOBALS['wgSubpageNavigationDisableBreadcrumb'] ) ) {
 			return false;
 		}
-
+		
 		$skinName = $skin->getSkinName();
 		// @TODO adjust as needed
 		return ( $skinName !== 'vector-2022' );
@@ -49,23 +49,37 @@ class SubpageNavigation {
 	 * @return string
 	 */
 	public static function getSubpageHeader( $title ) {
-		$subpages = self::getSubpages( $title->getDBkey() . '/' );
-		
+		// or use getPrefixedDBKey
+		$subpages = self::getSubpages( $title->getDBkey() . '/', $title->getNamespace() );
+
 		if ( empty( $subpages ) ) {
 			return false;
 		}
-		
+
+		$titlesText = array_map( static function( $value ) {
+			return $value->getText();
+		}, $subpages );
+
+		$dbr = wfGetDB( DB_REPLICA );
+		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace() );
+
 		$limit = 100;
 		$services = MediaWikiServices::getInstance();
 		$linkRenderer = $services->getLinkRenderer();
-		
+
 		$children = Html::openElement( 'ul', [ 'class' => 'subpage-navigation-list' . ( count( $subpages ) > $limit ? ' incomplete' : '' ) ] ) . "\n";
 
-		$children .= implode( array_map( static function ( $value ) use ( $title, $linkRenderer ) {
-			return Html::rawElement( 'li', [],  $linkRenderer->makeKnownLink( $value,
-				substr( $value->getText(), strlen( $title->getDBkey() ) + 1 ) ) );
+		$children .= implode( array_map( static function ( $value ) use ( $title, $linkRenderer, &$childrenCount ) {
+			$label = substr( $value->getText(), strlen( $title->getDBkey() ) + 1 );
+			$childCount = array_shift( $childrenCount );
+			$attr = [];
+			if ( $childCount > 0 ) {
+				$attr['style'] = 'font-weight:bold';
+			}
+			return Html::rawElement( 'li', $attr,  $linkRenderer->makeKnownLink( $value,
+				$label . ( !$childCount ? '' : ' (' . $childCount . ')' ) ) );
 		}, $subpages ) );
-		
+
 		if ( count( $subpages ) > $limit ) {
 			$specialPage = SpecialPage::getTitleFor( 'subpagenavigationsubpages', $title->getDBkey() );
 			$children .= Html::rawElement( 'li', [],
@@ -119,11 +133,13 @@ class SubpageNavigation {
 				. $separator . $page->getDescription();
 		}
 
+		$links = [];
 		if ( false === self::parseSubpage( $titleText, $current, $links ) ) {
 			return false;
 		}
 
-		return implode( $separator, $links ) . $separator . $current;
+		return implode( $separator, $links )
+			. ( count( $links ) ? $separator : '' ) . $current;
 	}
 
 	/**
@@ -209,12 +225,13 @@ class SubpageNavigation {
 
 	/**
 	 * @param string $prefix
+	 * @param int $namespace
 	 * @param int|null $limit
 	 * @return array
 	 */
-	public static function getSubpages( $prefix, $limit = null ) {
-		$dbr = wfGetDB( DB_MASTER );
-		$sql = self::subpagesSQL( $dbr, $prefix );
+	public static function getSubpages( $prefix, $namespace, $limit = null ) {
+		$dbr = wfGetDB( DB_REPLICA );
+		$sql = self::subpagesSQL( $dbr, $prefix, $namespace );
 
 		if ( $limit ) {
 			$offset = 0;
@@ -227,6 +244,35 @@ class SubpageNavigation {
 			$title = Title::newFromRow( $row );
 			if ( $title->isKnown() ) {
 				$ret[] = $title;	
+			}
+		}
+
+		return $ret;
+	}
+	
+	/**
+	 * @param IDatabase $dbr
+	 * @param array $arr
+	 * @param int $namespace
+	 * @return array
+	 */
+	public static function getChildrenCount( $dbr, $titlesText, $namespace ) {
+		$sqls = [];
+		foreach ( $titlesText as $text ) {
+			$text = str_replace( ' ', '_', $text );
+			$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, true );
+		}
+
+		$resMap = $dbr->queryMulti( $sqls, __METHOD__ );
+		// @see DatabaseMysqlTest
+		reset( $resMap );
+		$ret = [];
+		foreach ( $resMap as $i => $qs ) {
+			if ( is_iterable( $qs->res ) ) {
+				foreach ( $qs->res as $row ) {
+					$ret[] = $row->count;
+					break;
+				}
 			}
 		}
 		return $ret;
@@ -255,31 +301,36 @@ class SubpageNavigation {
 	/**
 	 * @param IDatabase $dbr
 	 * @param string $prefix
-	 * @param int|null $namespace
+	 * @param int $namespace
+	 * @param bool|false $count
 	 * @return string
 	 */
-	public static function subpagesSQL( $dbr, $prefix, $namespace = NS_MAIN ) {
-		$cond = 'page_namespace = ' . $namespace . ( $prefix != '/' ?
-			' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' ) : '');
+	public static function subpagesSQL( $dbr, $prefix, $namespace, $count = false ) {
+		$cond = 'page_namespace = ' . $namespace
+			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
+			 	: '' );
 
-		// @TODO to count direct children correctly
-		// use the following https://dev.mysql.com/doc/refman/8.0/en/with.html#common-table-expressions-recursive-examples
-		// (Hierarchical Data Traversal)
-		return 'SELECT t.*, ( 1 - (t.page_title REGEXP \'^[0-9]+$\') ) AS isNumeric,
-		(SELECT COUNT(*) FROM page WHERE ' . $cond . ' AND page_title LIKE CONCAT(t.page_title, "/%")) AS childCount
-FROM (SELECT page_id, page_namespace, page_title,
-	SUBSTR( page_title, 1, LOCATE(\'/\', SUBSTR( page_title, ' . ( strlen( $prefix ) + 1 ) . ') ) + ' . ( strlen( $prefix ) - 1 ) . ')
-	AS subpage FROM page
-WHERE ' . $cond . '
-) as t
-WHERE NOT EXISTS (
-	SELECT 1 FROM page
-	WHERE ' . $cond . '
-	AND page_title = t.subpage
-)
-ORDER BY isNumeric, length(t.page_title), t.page_title
-';
+		$pageTable = $dbr->tableName( 'page' );
+
+		// @TODO use the standard interface
+		$select = ( !$count ? ' DISTINCT t1.*' : 'COUNT(*) as count' );
+
+		$sql = "SELECT $select
+FROM (
+		SELECT page_id, page_title, page_namespace
+		FROM $pageTable
+		WHERE $cond
+	) AS t1
+LEFT JOIN(
+    SELECT page_title
+    FROM $pageTable
+	WHERE $cond
+) AS t2
+ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
+";
+
+		return $sql;
 	}
-
 }
 

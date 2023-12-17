@@ -24,6 +24,7 @@
 
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
+use Wikimedia\Rdbms\FakeResultWrapper;
 use Wikimedia\Rdbms\IResultWrapper;
 
 class SpecialSubpageNavigationSubpages extends QueryPage {
@@ -202,8 +203,22 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 		$sql = $dbr->limitResult( $query, $limit, $offset );
 
 		$res = $dbr->query( $sql, $fname );
+		$titlesText = [];
+		foreach ( $res as $row ) {
+			$titlesText[] = $row->page_title;
+		}
+		$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $this->namespace );
 
-		return $res;
+		foreach ( $res as $i => $row ) {
+			$titlesText[] = $row->page_title;
+		}
+		$ret = [];
+		foreach ( $res as $row ) {
+			$row->childCount = array_shift( $childrenCount );
+			$ret[] = $row;
+		}
+		// $res->rewind();
+		return new Wikimedia\Rdbms\FakeResultWrapper( $ret );
 	}
 
 	/**
