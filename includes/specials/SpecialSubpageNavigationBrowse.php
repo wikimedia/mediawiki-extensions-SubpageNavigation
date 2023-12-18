@@ -27,21 +27,24 @@ use MediaWiki\MediaWikiServices;
 use Wikimedia\Rdbms\FakeResultWrapper;
 use Wikimedia\Rdbms\IResultWrapper;
 
-class SpecialSubpageNavigationSubpages extends QueryPage {
+class SpecialSubpageNavigationBrowse extends QueryPage {
 
-	/** @var prefix */
+	/** @var string */
 	private $prefix;
 	
-	/** @var namespace */
+	/** @var int */
 	private $namespace;
 	
 	/** @var LinkRenderer */
 	private $LinkRenderer;
+
+	/** @var Title */
+	private $title;
 	
 	/**
 	 * @inheritDoc
 	 */
-	public function __construct( $name = 'subpagenavigationsubpages' ) {
+	public function __construct( $name = 'subpagenavigationbrowse' ) {
 		parent::__construct( $name, false );
 	}
 	
@@ -56,24 +59,33 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 		
 		$out = $this->getOutput();
 		$title = null;
-		
-		$multiplePages = ( $this->numRows > 20 || $this->offset > 0 );		
-		
+		$parentTitle = null;
+
 		if ( $par ) {
 			$title = Title::newFromText( $par );
 			$parentTitle = \SubpageNavigation::getFirstAncestor( $title );
-			$specialPage = SpecialPage::getTitleFor( 'subpagenavigationsubpages', $parentTitle ? $parentTitle->getDBkey() : null );
-			
-			$out->addWikiMsg(
-				'subpagenavigation-specialsubpages-return',
-				$specialPage->getFullText(),
-				$parentTitle ? $parentTitle->getFullText() : $this->msg( 'subpagenavigation-specialsubpages-root' )->parse()
-			);
+		}
+
+		$this->title = $title;
+		$this->addNavigationLinks( $par );		
+		$multiplePages = ( $this->numRows > 20 || $this->offset > 0 );
+
+		if ( $par ) {
+			$attr = [];
+			if ( !$parentTitle ) {
+				$attr['style'] = 'font-style:italic';
+			}
+			$label = $parentTitle ? $parentTitle->getFullText()
+				: $this->msg( 'subpagenavigation-specialsubpages-root' )->parse();
+
+			$out->addHTML( $this->msg( 'subpagenavigation-specialsubpages-return',
+				$this->getSpecialLink( $parentTitle, $label, $this->getRequest()->getVal( 'mode' ), $attr ) )->text() );
+
 			if ( $multiplePages ) {
 				$out->addHTML( '<br />' );
 			}
 		}
-		
+
 		$this->prefix = $par . '/';
 		$this->namespace = $title ? $title->getNamespace() : NS_MAIN;
 		$this->LinkRenderer = $this->getLinkRenderer();
@@ -171,6 +183,10 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 			}
 		}
 
+		if ( $par ) {
+			$out->addHTML( '<h4>' . $title->getText() . '</h4>' );
+		}
+
 		// The actual results; specialist subclasses will want to handle this
 		// with more than a straight list, so we hand them the info, plus
 		// an OutputPage, and let them get on with it
@@ -191,15 +207,97 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 
 		$out->addHTML( Xml::closeElement( 'div' ) );
 	}
-	
+
+	/**
+	 * @param Title $title
+	 * @param string $label
+	 * @param int $mode
+	 * @param array $attr
+	 * @return string
+	 */
+	private function getSpecialLink( $title, $label, $mode, $attr = [] ) {
+		$specialPage = SpecialPage::getTitleFor( 'subpagenavigationbrowse', $title ? $title->getDBkey() : null );
+
+		return Html::rawElement( 'a', array_merge( [
+			'href' => wfAppendQuery( $specialPage->getLocalURL(), 'mode=' . $mode )
+		], $attr ), HtmlArmor::getHtml( $label ) );
+	}
+
+	/**
+	 * @see AbuseFilterSpecialPage
+	 * @param string $pageType
+	 */
+	protected function addNavigationLinks( $pageType ) {
+		$linkDefs = [
+			'default' => 1,
+			'folders' => 2,
+			'filesystem' => 3,
+		];
+
+		$links = [];
+
+		foreach ( $linkDefs as $name => $page ) {
+			// Give grep a chance to find the usages:
+			// abusefilter-topnav-home, abusefilter-topnav-recentchanges, abusefilter-topnav-test,
+			// abusefilter-topnav-log, abusefilter-topnav-tools, abusefilter-topnav-examine
+			$msgName = "subpagenavigation-browse-$name";
+
+			$msg = $this->msg( $msgName )->parse();
+
+			if ( $name === $pageType ) {
+				$links[] = Xml::tags( 'strong', null, $msg );
+			} else {
+				$links[] = $this->getSpecialLink( $this->title, $msg, $page );
+			}
+		}
+
+		$linkStr = $this->msg( 'parentheses' )
+			->rawParams( $this->getLanguage()->pipeList( $links ) )
+			->text();
+		$linkStr = $this->msg( 'subpagenavigation-browse-topnav' )->parse() . " $linkStr";
+
+		$linkStr = Xml::tags( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStr );
+
+		$this->getOutput()->setSubtitle( $linkStr );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	protected function buildPrevNextNavigation(
+		$offset,
+		$limit,
+		array $query = [],
+		$atend = false,
+		$subpage = false
+	) {
+ 		$ret = parent::buildPrevNextNavigation( $offset, $limit, $query, $atend, $subpage );
+
+		$html = new DOMDocument();
+		$html->loadHTML( $ret );
+		$request = $this->getRequest();
+		// $dom->loadHTML( mb_convert_encoding( $html, 'HTML-ENTITIES', 'UTF-8' ) );
+		foreach( $html->getElementsByTagName('a') as $node ) { 
+			$href = $node->getAttribute( 'href' );
+			$node->setAttribute( 'href', "$href&mode=" . $request->getVal( 'mode' ) );
+		}
+		return $html->saveHtml();
+	}
+
 	/**
 	 * @inheritDoc
 	 */
 	public function reallyDoQuery( $limit, $offset = false ) {
 		$fname = static::class . '::reallyDoQuery';
-		$dbr = $this->getRecacheDB();
-		// $dbr = wfGetDB( DB_MASTER );
-		$query = \SubpageNavigation::subpagesSQL( $dbr,  $this->prefix, $this->namespace );
+		// $dbr = $this->getRecacheDB();
+		$dbr = wfGetDB( DB_MASTER );
+
+		$mode = $this->getRequest()->getVal( 'mode' );
+		if ( empty( $mode ) ) {
+			$mode = \SubpageNavigation::MODE_DEFAULT;
+		}
+		$query = \SubpageNavigation::subpagesSQL( $dbr,  $this->prefix, $this->namespace, (int)$mode );
+
 		$sql = $dbr->limitResult( $query, $limit, $offset );
 
 		$res = $dbr->query( $sql, $fname );
@@ -234,9 +332,13 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 			substr( $title->getText(), strlen( $prefix ) ) );
 
 		if ( $result->childCount > 0 ) {
-			$specialPage = SpecialPage::getTitleFor( 'subpagenavigationsubpages', $title->getDBkey() );
-			return '<span style="font-weight:bold">' . $this->LinkRenderer->makeKnownLink( $specialPage, $display_title . ' (' . $result->childCount . ')' )
-				. '<span>';
+			// $specialPage = SpecialPage::getTitleFor( 'subpagenavigationbrowse', $title->getDBkey() );
+			// $this->LinkRenderer->makeKnownLink( $specialPage, $display_title . ' (' . $result->childCount . ')';
+			$attr = [
+				'style' => 'font-weight:bold'
+			];
+			$msg = $display_title . ' (' . $result->childCount . ')';
+			return $this->getSpecialLink( $title, $msg, $this->getRequest()->getVal( 'mode' ), $attr );
 		}
 		
 		return $this->LinkRenderer->makeKnownLink( $title, $display_title );
@@ -244,9 +346,45 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 
 	/**
 	 * @inheritDoc
+	 * @see QueryPage
+	 */
+	protected function outputResults( $out, $skin, $dbr, $res, $num, $offset ) {
+		if ( $num > 0 ) {
+			$html = [];
+			if ( !$this->listoutput ) {
+				$html[] = $this->openList( $offset );
+			}
+
+			// $res might contain the whole 1,000 rows, so we read up to
+			// $num [should update this to use a Pager]
+			for ( $i = 0; $i < $num && $row = $res->fetchObject(); $i++ ) {
+				$line = $this->formatResult( $skin, $row );
+				if ( $line ) {
+					// ***edited
+					$class = ( $row->childCount ? ' class="folder"' : '' );
+					$html[] = $this->listoutput
+						? $line
+						: "<li$class>{$line}</li>\n";
+				}
+			}
+
+			if ( !$this->listoutput ) {
+				$html[] = $this->closeList();
+			}
+
+			$html = $this->listoutput
+				? $this->getContentLanguage()->listToText( $html )
+				: implode( '', $html );
+
+			$out->addHTML( $html );
+		}
+	}
+
+	/**
+	 * @inheritDoc
 	 */
 	protected function openList($offset) {
-		return "\n<ul class='special'>\n";
+		return "\n<ul class='special directory-list'>\n";
 	}
 
 	/**
@@ -259,8 +397,7 @@ class SpecialSubpageNavigationSubpages extends QueryPage {
 	/**
 	 * @inheritDoc
 	 */
-	protected function getGroupName()
-	{
+	protected function getGroupName() {
 		return 'subpagenavigation';
 	}
 }

@@ -24,7 +24,12 @@
 use MediaWiki\MediaWikiServices;
 
 class SubpageNavigation {
-	
+
+	const MODE_DEFAULT = 1;
+	const MODE_FOLDERS = 2;
+	const MODE_FILESYSTEM = 3;
+	const MODE_COUNT = 4;
+
 	/**
 	 * @param User|null $user
 	 */
@@ -231,7 +236,7 @@ class SubpageNavigation {
 	 */
 	public static function getSubpages( $prefix, $namespace, $limit = null ) {
 		$dbr = wfGetDB( DB_REPLICA );
-		$sql = self::subpagesSQL( $dbr, $prefix, $namespace );
+		$sql = self::subpagesSQL( $dbr, $prefix, $namespace, self::MODE_DEFAULT );
 
 		if ( $limit ) {
 			$offset = 0;
@@ -260,7 +265,7 @@ class SubpageNavigation {
 		$sqls = [];
 		foreach ( $titlesText as $text ) {
 			$text = str_replace( ' ', '_', $text );
-			$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, true );
+			$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );
 		}
 
 		$resMap = $dbr->queryMulti( $sqls, __METHOD__ );
@@ -297,25 +302,29 @@ class SubpageNavigation {
 			$outputPage->addHeadItem( 'bookletnavigator_head_item' . $key, $item );
 		}
 	}
-	
+
 	/**
 	 * @param IDatabase $dbr
 	 * @param string $prefix
 	 * @param int $namespace
-	 * @param bool|false $count
+	 * @param int $mode
 	 * @return string
 	 */
-	public static function subpagesSQL( $dbr, $prefix, $namespace, $count = false ) {
+	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode ) {
 		$cond = 'page_namespace = ' . $namespace
 			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
 			 	: '' );
 
 		$pageTable = $dbr->tableName( 'page' );
+		
+		switch( $mode ) {
+			case self::MODE_COUNT:
+			case self::MODE_DEFAULT:
+				$select = ( $mode !== self::MODE_COUNT ? ' DISTINCT t1.*' : 'COUNT(*) as count' );
 
-		// @TODO use the standard interface
-		$select = ( !$count ? ' DISTINCT t1.*' : 'COUNT(*) as count' );
-
-		$sql = "SELECT $select
+				// the 2nd join is used to select
+				// intermediate pages and to exclude them
+				return "SELECT $select
 FROM (
 		SELECT page_id, page_title, page_namespace
 		FROM $pageTable
@@ -330,7 +339,78 @@ ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 ";
 
-		return $sql;
+			// the 3rd join is used to select
+			// only t1 entries with children
+			case self::MODE_FOLDERS:
+				return 	"SELECT DISTINCT t1.*
+FROM (
+		SELECT page_id, page_title, page_namespace
+		FROM $pageTable
+		WHERE $cond
+	) AS t1
+LEFT JOIN(
+    SELECT page_title
+    FROM $pageTable
+	WHERE $cond
+) AS t2
+ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+JOIN(
+    SELECT page_title
+    FROM $pageTable
+	WHERE $cond
+) AS t3
+ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
+WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
+";
+
+			// the first select selects only
+			// articles with children (excluding intermediate
+			// pages), and the 2nd select selects
+			// only articles without children
+			
+			case self::MODE_FILESYSTEM:
+				return "SELECT DISTINCT t1.*
+FROM (
+		SELECT page_id, page_title, page_namespace
+		FROM $pageTable
+		WHERE $cond
+	) AS t1
+LEFT JOIN(
+    SELECT page_title
+    FROM $pageTable
+	WHERE $cond
+) AS t2
+ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+JOIN(
+    SELECT page_title
+    FROM $pageTable
+	WHERE $cond
+) AS t3
+ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
+WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
+UNION
+SELECT DISTINCT t1.*
+FROM (
+		SELECT page_id, page_title, page_namespace
+		FROM $pageTable
+		WHERE $cond
+	) AS t1
+LEFT JOIN(
+    SELECT page_title
+    FROM $pageTable
+	WHERE $cond
+) AS t2
+ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+LEFT JOIN(
+    SELECT page_title
+    FROM $pageTable
+	WHERE $cond
+) AS t3
+ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
+WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
+";
+
+		} // switch
 	}
 }
 

@@ -17,7 +17,8 @@
 	"AutoloadClasses": {
 		"SubpageNavigationHooks": "includes/SubpageNavigationHooks.php",
 		"SubpageNavigation": "includes/SubpageNavigation.php",
-		"SpecialSubpageNavigationSubpages": "includes/specials/SpecialSubpageNavigationSubpages.php"
+		"SubpageNavigationApiCheckLatestVersion": "includes/api/SubpageNavigationApiCheckLatestVersion.php",
+		"SpecialSubpageNavigationBrowse": "includes/specials/SpecialSubpageNavigationBrowse.php"
 	},
 	"ExtensionMessagesFiles": {
 		"SubpageNavigationAlias": "SubpageNavigation.alias.php",
@@ -25,15 +26,17 @@
 	},
 	"Hooks": {
 		"BeforeInitialize": "SubpageNavigationHooks::onBeforeInitialize",
+		"SidebarBeforeOutput": "SubpageNavigationHooks::onSidebarBeforeOutput",
 		"MediaWikiServices": "SubpageNavigationHooks::onMediaWikiServices",
 		"BeforePageDisplay": "SubpageNavigationHooks::onBeforePageDisplay",
 		"ArticleViewNavigation": "SubpageNavigationHooks::onArticleViewNavigation",
 		"SkinSubPageSubtitle": "SubpageNavigationHooks::onSkinSubPageSubtitle"
 	},
 	"SpecialPages": {
-		"SubpageNavigationSubpages": "SpecialSubpageNavigationSubpages"
+		"SubpageNavigationbrowse": "SpecialSubpageNavigationBrowse"
 	},
 	"APIModules": {
+		"subpagenavigation-check-latest-version": "SubpageNavigationApiCheckLatestVersion"
 	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",
@@ -43,15 +46,18 @@
 		"ext.SubpageNavigationSubpages": {
 			"position": "top",
 			"scripts": [
-				"SubpageNavigation.js"
+				"SubpageNavigation.js",
+				"VersionCheck.js"
 			],
 			"styles": [
-				"style.css"
+				"style.css",
+				"style_list.css"
 			],
 			"dependencies": [
 				"mediawiki.action.edit.collapsibleFooter"
 			],
 			"messages": [
+				"subpagenavigation-jsmodule-outdated-version"
 			]
 		}
 	},

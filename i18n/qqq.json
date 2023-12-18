@@ -2,6 +2,18 @@
 	"@metadata": {
 		"authors": []
 	},
-	
-	
+	"subpagenavigation-extension-desc": "A label message",
+	"specialpages-group-subpagenavigation": "A label message",
+	"subpagenavigationbrowse": "A label message",
+	"subpagenavigation-sidebar": "A label message",
+	"subpagenavigation-list-explanation": "A label message: ",
+	"subpagenavigation-specialsubpages-return_": "A label message",
+	"subpagenavigation-specialsubpages-return": "A label message",
+	"subpagenavigation-specialsubpages-root": "A label message",
+	"subpagenavigation-jsmodule-outdated-version": "A label message",
+	"subpagenavigation-list-show-all": "A label message",
+	"subpagenavigation-browse-topnav": "A label message",
+	"subpagenavigation-browse-default": "A label message",
+	"subpagenavigation-browse-folders": "A label message",
+	"subpagenavigation-browse-filesystem": "A label message"
 }

@@ -3,10 +3,17 @@
 		"authors": []
 	},
 	"subpagenavigation-extension-desc": "Shows direct children of current page in article navigation",
-	"specialpages-group-subpagenavigation": "Subpage Navigation",
-	"subpagenavigationsubpages": "Subpage Navigation",
+	"specialpages-group-subpagenavigation": "SubpageNavigation",
+	"subpagenavigationbrowse": "Browse subpages",
+	"subpagenavigation-sidebar": "Browse subpages",
 	"subpagenavigation-list-explanation": "Subpages: ",
-	"subpagenavigation-specialsubpages-return": "← [[$1|$2]]",
-	"subpagenavigation-specialsubpages-root": "<em>root</em>",
-	"subpagenavigation-list-show-all": "show all..."
+	"subpagenavigation-specialsubpages-return_": "← [[$1|$2]]",
+	"subpagenavigation-specialsubpages-return": "← $1",
+	"subpagenavigation-specialsubpages-root": "return",
+	"subpagenavigation-jsmodule-outdated-version": "This version of SubpageNavigation is outdated. <a href=\"https://www.mediawiki.org/wiki/Special:ExtensionDistributor/SubpageNavigation\">Update</a>",
+	"subpagenavigation-list-show-all": "show all...",
+	"subpagenavigation-browse-topnav": "mode",
+	"subpagenavigation-browse-default": "default",
+	"subpagenavigation-browse-folders": "folders",
+	"subpagenavigation-browse-filesystem": "filesystem"
 }

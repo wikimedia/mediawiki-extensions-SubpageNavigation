@@ -124,6 +124,23 @@ class SubpageNavigationHooks {
 			}
 		}
 	}
+	
+	/**
+	 * @param Skin $skin
+	 * @param array &$sidebar
+	 * @return void
+	 */
+	public static function onSidebarBeforeOutput( $skin, &$sidebar ) {
+		if ( !empty( $GLOBALS['wgSubpageNavigationDisableSidebarLink'] ) ) {
+			return;
+		}
+
+		$specialpage_title = SpecialPage::getTitleFor( 'SubpageNavigationbrowse' );
+		$sidebar['TOOLBOX'][] = [
+			'text'   => wfMessage( 'subpagenavigation-sidebar' )->text(),
+			'href'   => $specialpage_title->getLocalURL()
+		];
+	}
 
 }
 
