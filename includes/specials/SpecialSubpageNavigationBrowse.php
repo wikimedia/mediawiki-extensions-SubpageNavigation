@@ -184,7 +184,8 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		}
 
 		if ( $par ) {
-			$out->addHTML( '<h4>' . $title->getText() . '</h4>' );
+			$out->addHTML( '<h4>' . $this->LinkRenderer->makeKnownLink(
+				$title, $title->getText() ) . '</h4>' );
 		}
 
 		// The actual results; specialist subclasses will want to handle this
@@ -401,4 +402,3 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		return 'subpagenavigation';
 	}
 }
-

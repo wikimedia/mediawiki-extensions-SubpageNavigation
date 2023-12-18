@@ -11,5 +11,5 @@ $specialPageAliases = [];
  * English
  */
 $specialPageAliases['en'] = [
-	'SubpageNavigationSubpages' => [ 'SubpageNavigationSubpages' ],
+	'SubpageNavigationBrowse' => [ 'SubpageNavigationBrowse' ],
 ];

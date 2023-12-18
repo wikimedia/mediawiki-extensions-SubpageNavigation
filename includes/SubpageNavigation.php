@@ -55,10 +55,22 @@ class SubpageNavigation {
 	 */
 	public static function getSubpageHeader( $title ) {
 		// or use getPrefixedDBKey
-		$subpages = self::getSubpages( $title->getDBkey() . '/', $title->getNamespace() );
+		$limit = isset( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesThreshold'] ) 
+			&& is_numeric( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesThreshold'] )
+			 ? (int)$GLOBALS['wgSubpageNavigationArticleHeaderSubpagesThreshold']
+			 : 20;
 
+		$limit_ = $limit + 1;
+		$subpages = self::getSubpages( $title->getDBkey() . '/', $title->getNamespace(), $limit_ );
+		
 		if ( empty( $subpages ) ) {
 			return false;
+		}
+
+		$threshold = ( count( $subpages ) === $limit_ );
+
+		if ( $threshold ) {
+			$subpages = array_slice( $subpages, 0, $limit );
 		}
 
 		$titlesText = array_map( static function( $value ) {
@@ -68,7 +80,6 @@ class SubpageNavigation {
 		$dbr = wfGetDB( DB_REPLICA );
 		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace() );
 
-		$limit = 100;
 		$services = MediaWikiServices::getInstance();
 		$linkRenderer = $services->getLinkRenderer();
 
@@ -84,13 +95,6 @@ class SubpageNavigation {
 			return Html::rawElement( 'li', $attr,  $linkRenderer->makeKnownLink( $value,
 				$label . ( !$childCount ? '' : ' (' . $childCount . ')' ) ) );
 		}, $subpages ) );
-
-		if ( count( $subpages ) > $limit ) {
-			$specialPage = SpecialPage::getTitleFor( 'subpagenavigationsubpages', $title->getDBkey() );
-			$children .= Html::rawElement( 'li', [],
-				$linkRenderer->makeKnownLink( $specialPage, wfMessage( 'subpagenavigation-list-show-all' )->plain() )
-			);
-		}
 	
 		$children .= Html::closeElement( 'ul' );
 
@@ -98,8 +102,17 @@ class SubpageNavigation {
 		$outText = Html::openElement( 'div', [ 'class' => 'mw-subpageNavigationExplanation mw-editfooter-toggler mw-icon-arrow-expanded' ] );
 		$outText .= wfMessage( 'subpagenavigation-list-explanation' )->plain();
 		$outText .= Html::closeElement( 'div' );
-		$outText .= $children;		
-		
+		$outText .= $children;
+
+		if ( $threshold ) {
+			$specialPage = SpecialPage::getTitleFor( 'SubpageNavigationBrowse', $title->getDBkey() );
+			$outText .= Html::rawElement( 'div', [
+					'class' => 'subpagenavigation-article-header-show-more'
+				],
+				$linkRenderer->makeKnownLink( $specialPage, wfMessage( 'subpagenavigation-list-show-all' )->plain() )
+			);
+		}
+
 		// @see EditPage
 		// return Html::rawElement( 'div', [ 'class' => 'subpageHeader' ],
 		// 	$templateListFormatter->format( $templates, $type )
@@ -367,7 +380,7 @@ WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 			// articles with children (excluding intermediate
 			// pages), and the 2nd select selects
 			// only articles without children
-			
+
 			case self::MODE_FILESYSTEM:
 				return "SELECT DISTINCT t1.*
 FROM (
@@ -413,4 +426,3 @@ WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 		} // switch
 	}
 }
-
