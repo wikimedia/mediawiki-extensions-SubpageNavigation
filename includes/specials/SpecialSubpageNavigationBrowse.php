@@ -44,7 +44,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	/**
 	 * @inheritDoc
 	 */
-	public function __construct( $name = 'subpagenavigationbrowse' ) {
+	public function __construct( $name = 'SubpageNavigationBrowse' ) {
 		parent::__construct( $name, false );
 	}
 	
@@ -217,7 +217,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	 * @return string
 	 */
 	private function getSpecialLink( $title, $label, $mode, $attr = [] ) {
-		$specialPage = SpecialPage::getTitleFor( 'subpagenavigationbrowse', $title ? $title->getDBkey() : null );
+		$specialPage = SpecialPage::getTitleFor( 'SubpageNavigationBrowse', $title ? $title->getDBkey() : null );
 
 		return Html::rawElement( 'a', array_merge( [
 			'href' => wfAppendQuery( $specialPage->getLocalURL(), 'mode=' . $mode )

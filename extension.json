@@ -33,7 +33,7 @@
 		"SkinSubPageSubtitle": "SubpageNavigationHooks::onSkinSubPageSubtitle"
 	},
 	"SpecialPages": {
-		"SubpageNavigationbrowse": "SpecialSubpageNavigationBrowse"
+		"SubpageNavigationBrowse": "SpecialSubpageNavigationBrowse"
 	},
 	"APIModules": {
 		"subpagenavigation-check-latest-version": "SubpageNavigationApiCheckLatestVersion"

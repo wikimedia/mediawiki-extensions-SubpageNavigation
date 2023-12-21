@@ -12,6 +12,7 @@
 	float: right;
 }
 
+/* stylelint-disable-next-line selector-max-id */
 #mw-indicator-subpage-navigation {
 	font-size: smaller;
 	float: none;
@@ -26,16 +27,16 @@
 }
 
 .subpageNavigation {
-    background-color: #f8f9fa;
-    display: table;
-    border-bottom: 1px dotted #a2a9b1;
-    box-sizing: border-box;
-    /* line-height: 1.2; */
-    width: 100%;
-    clear: both;
-    overflow: auto;
-    padding: 4px;
-    margin-bottom: 1.5em;
+	background-color: #f8f9fa;
+	display: table;
+	border-bottom: 1px dotted #a2a9b1;
+	box-sizing: border-box;
+	/* line-height: 1.2; */
+	width: 100%;
+	clear: both;
+	overflow: auto;
+	padding: 4px;
+	margin-bottom: 1.5em;
 }
 
 .subpagenavigation-article-header-show-more {

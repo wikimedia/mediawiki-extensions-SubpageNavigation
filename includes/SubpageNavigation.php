@@ -137,7 +137,7 @@ class SubpageNavigation {
 		$linkRenderer = $services->getLinkRenderer();
 		$separator = '&#32;/&#32;';
 		
-		$specialPages = SpecialPage::getTitleFor( 'SpecialPages' );
+		$specialPages = SpecialPage::getTitleFor( 'Specialpages' );
 		if ( $title->isSpecialPage() && $title->getFullText() !== $specialPages->getFullText() ) {
 			$specialPageFactory = $services->getSpecialPageFactory();
 			$page = $specialPageFactory->getPage( $titleText );
@@ -276,6 +276,11 @@ class SubpageNavigation {
 	 */
 	public static function getChildrenCount( $dbr, $titlesText, $namespace ) {
 		$sqls = [];
+		// @ATTENTION!! removed from Wikimedia\Rdbms\Database since MW 1.4.1 !!
+		if ( !method_exists( $dbr, 'queryMulti' ) ) { 
+			return [];
+		}
+
 		foreach ( $titlesText as $text ) {
 			$text = str_replace( ' ', '_', $text );
 			$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );

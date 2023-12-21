@@ -41,10 +41,10 @@ class SubpageNavigationHooks {
 	 * @param OutputPage $output
 	 * @param User $user
 	 * @param WebRequest $request
-	 * @param MediaWiki $mediaWiki
+	 * @param MediaWiki|MediaWiki\Actions\ActionEntryPoint $mediaWiki
 	 * @return void
 	 */
-	public static function onBeforeInitialize( \Title &$title, $unused, \OutputPage $output, \User $user, \WebRequest $request, \MediaWiki $mediaWiki ) {
+	public static function onBeforeInitialize( \Title &$title, $unused, \OutputPage $output, \User $user, \WebRequest $request, $mediaWiki ) {
 		\SubpageNavigation::initialize( $user );
 	}
 	
@@ -135,7 +135,7 @@ class SubpageNavigationHooks {
 			return;
 		}
 
-		$specialpage_title = SpecialPage::getTitleFor( 'SubpageNavigationbrowse' );
+		$specialpage_title = SpecialPage::getTitleFor( 'SubpageNavigationBrowse' );
 		$sidebar['TOOLBOX'][] = [
 			'text'   => wfMessage( 'subpagenavigation-sidebar' )->text(),
 			'href'   => $specialpage_title->getLocalURL()

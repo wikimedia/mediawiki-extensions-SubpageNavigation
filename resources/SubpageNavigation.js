@@ -31,7 +31,7 @@
 			listSel: '.subpageNavigation ul',
 			togglerSel: '.mw-subpageNavigationExplanation',
 			storeKey: 'mwedit-state-subpageNavigation'
-		},
+		}
 	];
 
 	handleOne = function ( $list, $toggler, storeKey ) {
@@ -64,7 +64,7 @@
 		} );
 	};
 
-	mw.hook( 'wikipage.content' ).add( function ( $contentText ) {	
+	mw.hook( 'wikipage.content' ).add( function ( $contentText ) {
 		var i;
 		for ( i = 0; i < collapsibleLists.length; i++ ) {
 			// Pass to a function for iteration-local variables

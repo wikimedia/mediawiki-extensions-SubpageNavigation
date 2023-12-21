@@ -19,59 +19,59 @@
  * @copyright Copyright © 2023, https://wikisphere.org
  */
 
-$(function () {
+$( function () {
 	// display every 3 days
 	if (
-		!mw.config.get("subpagenavigation-disableVersionCheck") &&
-		!mw.cookie.get("subpagenavigation-check-latest-version")
+		!mw.config.get( 'subpagenavigation-disableVersionCheck' ) &&
+		!mw.cookie.get( 'subpagenavigation-check-latest-version' )
 	) {
-		mw.loader.using("mediawiki.api", function () {
+		mw.loader.using( 'mediawiki.api', function () {
 			var payload = {
-				action: "subpagenavigation-check-latest-version",
+				action: 'subpagenavigation-check-latest-version'
 			};
-			new mw.Api().postWithToken("csrf", payload).done(function (res) {
-				if (payload.action in res) {
-					if (res[payload.action].result === 2) {
-						var messageWidget = new OO.ui.MessageWidget({
-							type: "warning",
+			new mw.Api().postWithToken( 'csrf', payload ).done( function ( res ) {
+				if ( payload.action in res ) {
+					if ( res[ payload.action ].result === 2 ) {
+						var messageWidget = new OO.ui.MessageWidget( {
+							type: 'warning',
 							label: new OO.ui.HtmlSnippet(
-								mw.msg("subpagenavigation-jsmodule-outdated-version")
+								mw.msg( 'subpagenavigation-jsmodule-outdated-version' )
 							),
 							// *** this does not work before ooui v0.43.0
-							showClose: true,
-						});
+							showClose: true
+						} );
 						var closeFunction = function () {
 							var three_days = 3 * 86400;
-							mw.cookie.set("subpagenavigation-check-latest-version", true, {
-								path: "/",
-								expires: three_days,
-							});
-							$(messageWidget.$element).parent().remove();
+							mw.cookie.set( 'subpagenavigation-check-latest-version', true, {
+								path: '/',
+								expires: three_days
+							} );
+							$( messageWidget.$element ).parent().remove();
 						};
-						messageWidget.on("close", closeFunction);
+						messageWidget.on( 'close', closeFunction );
 
-						$("#mw-content-text").first().prepend(
+						$( '#mw-content-text' ).first().prepend(
 							// eslint-disable-next-line no-jquery/no-parse-html-literal
-							$("<div><br/></div>").prepend(messageWidget.$element)
+							$( '<div><br/></div>' ).prepend( messageWidget.$element )
 						);
 						if (
 							// eslint-disable-next-line no-jquery/no-class-state
-							!messageWidget.$element.hasClass("oo-ui-messageWidget-showClose")
+							!messageWidget.$element.hasClass( 'oo-ui-messageWidget-showClose' )
 						) {
-							messageWidget.$element.addClass("oo-ui-messageWidget-showClose");
-							var closeButton = new OO.ui.ButtonWidget({
-								classes: ["oo-ui-messageWidget-close"],
+							messageWidget.$element.addClass( 'oo-ui-messageWidget-showClose' );
+							var closeButton = new OO.ui.ButtonWidget( {
+								classes: [ 'oo-ui-messageWidget-close' ],
 								framed: false,
-								icon: "close",
-								label: OO.ui.msg("ooui-popup-widget-close-button-aria-label"),
-								invisibleLabel: true,
-							});
-							closeButton.on("click", closeFunction);
-							messageWidget.$element.append(closeButton.$element);
+								icon: 'close',
+								label: OO.ui.msg( 'ooui-popup-widget-close-button-aria-label' ),
+								invisibleLabel: true
+							} );
+							closeButton.on( 'click', closeFunction );
+							messageWidget.$element.append( closeButton.$element );
 						}
 					}
 				}
-			});
-		});
+			} );
+		} );
 	}
-});
+} );
