@@ -23,31 +23,28 @@
  */
 
 use MediaWiki\MainConfigNames;
-use MediaWiki\MediaWikiServices;
-use Wikimedia\Rdbms\FakeResultWrapper;
-use Wikimedia\Rdbms\IResultWrapper;
 
 class SpecialSubpageNavigationBrowse extends QueryPage {
 
 	/** @var string */
 	private $prefix;
-	
+
 	/** @var int */
 	private $namespace;
-	
+
 	/** @var LinkRenderer */
 	private $LinkRenderer;
 
 	/** @var Title */
 	private $title;
-	
+
 	/**
 	 * @inheritDoc
 	 */
 	public function __construct( $name = 'SubpageNavigationBrowse' ) {
 		parent::__construct( $name, false );
 	}
-	
+
 	/**
 	 * @inheritDoc
 	 */
@@ -56,7 +53,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		// $this->checkPermissions();
 		$this->setHeaders();
 		$this->outputHeader();
-		
+
 		$out = $this->getOutput();
 		$title = null;
 		$parentTitle = null;
@@ -67,7 +64,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		}
 
 		$this->title = $title;
-		$this->addNavigationLinks( $par );		
+		$this->addNavigationLinks( $par );
 		$multiplePages = ( $this->numRows > 20 || $this->offset > 0 );
 
 		if ( $par ) {
@@ -98,7 +95,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		$out->setSyndicated( $this->isSyndicated() );
 
 		if ( $this->limit == 0 && $this->offset == 0 ) {
-			list( $this->limit, $this->offset ) = $this->getLimitOffset();
+			[ $this->limit, $this->offset ] = $this->getLimitOffset();
 		}
 		$dbLimit = $this->getDBLimit( $this->limit, $this->offset );
 		// @todo Use doQuery()
@@ -272,13 +269,13 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		$atend = false,
 		$subpage = false
 	) {
- 		$ret = parent::buildPrevNextNavigation( $offset, $limit, $query, $atend, $subpage );
+		$ret = parent::buildPrevNextNavigation( $offset, $limit, $query, $atend, $subpage );
 
 		$html = new DOMDocument();
 		$html->loadHTML( $ret );
 		$request = $this->getRequest();
 		// $dom->loadHTML( mb_convert_encoding( $html, 'HTML-ENTITIES', 'UTF-8' ) );
-		foreach( $html->getElementsByTagName('a') as $node ) { 
+		foreach ( $html->getElementsByTagName( 'a' ) as $node ) {
 			$href = $node->getAttribute( 'href' );
 			$node->setAttribute( 'href', "$href&mode=" . $request->getVal( 'mode' ) );
 		}
@@ -341,7 +338,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			$msg = $display_title . ' (' . $result->childCount . ')';
 			return $this->getSpecialLink( $title, $msg, $this->getRequest()->getVal( 'mode' ), $attr );
 		}
-		
+
 		return $this->LinkRenderer->makeKnownLink( $title, $display_title );
 	}
 
@@ -358,6 +355,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 
 			// $res might contain the whole 1,000 rows, so we read up to
 			// $num [should update this to use a Pager]
+			// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 			for ( $i = 0; $i < $num && $row = $res->fetchObject(); $i++ ) {
 				$line = $this->formatResult( $skin, $row );
 				if ( $line ) {
@@ -384,7 +382,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	/**
 	 * @inheritDoc
 	 */
-	protected function openList($offset) {
+	protected function openList( $offset ) {
 		return "\n<ul class='special directory-list'>\n";
 	}
 
@@ -394,7 +392,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	protected function closeList() {
 		return "</ul>\n";
 	}
-	
+
 	/**
 	 * @inheritDoc
 	 */

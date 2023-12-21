@@ -28,5 +28,4 @@ $magicWords = [];
 // https://www.mediawiki.org/wiki/Manual:Magic_words
 // '0' stands for 'case insensitive'
 
-$magicWords['en'] = [
-];
+$magicWords['en'] = [];

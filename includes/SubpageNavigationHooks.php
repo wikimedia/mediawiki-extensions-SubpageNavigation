@@ -29,12 +29,13 @@ class SubpageNavigationHooks {
 	 * @param MediaWikiServices $services
 	 * @return void
 	 */
-	public static function onMediaWikiServices( $services ) { }
+	public static function onMediaWikiServices( $services ) {
+	}
 
 	public static function onRegistration() {
 		// $GLOBALS['wgwgNamespacesWithSubpages'][NS_MAIN] = false;
 	}
-	
+
 	/**
 	 * @param Title &$title
 	 * @param null $unused
@@ -47,7 +48,7 @@ class SubpageNavigationHooks {
 	public static function onBeforeInitialize( \Title &$title, $unused, \OutputPage $output, \User $user, \WebRequest $request, $mediaWiki ) {
 		\SubpageNavigation::initialize( $user );
 	}
-	
+
 	/**
 	 * @see https://gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/extensions/Translate/+/394f20034b62f5b1ddfb7ac7d31c5d7ff3e3b253/src/PageTranslation/Hooks.php
 	 * @param Article &$article
@@ -58,9 +59,9 @@ class SubpageNavigationHooks {
 	public static function onArticleViewHeader( Article &$article, &$outputDone, bool &$pcache ) {
 		// *** this is used by the Translate extension
 		// *** to display the "translate" link,
-		// *** we use onBeforePageDisplay OutputPage -> prependHTML instead		
+		// *** we use onBeforePageDisplay OutputPage -> prependHTML instead
 	}
-		
+
 	/**
 	 * @param string &$subpages
 	 * @param Skin $skin
@@ -80,7 +81,7 @@ class SubpageNavigationHooks {
 	 */
 	public static function onBeforePageDisplay( OutputPage $outputPage, Skin $skin ) {
 		global $wgResourceBasePath;
-		
+
 		$title = $outputPage->getTitle();
 
 		// with vector-2022 skin unfortunately
@@ -95,16 +96,16 @@ class SubpageNavigationHooks {
 				] );
 			}
 		}
-		
+
 		// used by WikidataPageBanner to place the banner
 		// $outputPage->addSubtitle( 'addSubtitle' );
-		
+
 		$outputPage->addModules( [ 'ext.SubpageNavigationSubpages' ] );
 
 		\SubpageNavigation::addHeaditem( $outputPage, [
-		 	[ 'stylesheet', $wgResourceBasePath . '/extensions/SubpageNavigation/resources/style.css' ],
+			[ 'stylesheet', $wgResourceBasePath . '/extensions/SubpageNavigation/resources/style.css' ],
 		] );
-		
+
 		if ( $title->isSpecialPage() ) {
 			return;
 		}
@@ -115,16 +116,16 @@ class SubpageNavigationHooks {
 
 		// *** this is rendered after than onArticleViewHeader
 		$outputPage->prependHTML( \SubpageNavigation::getSubpageHeader( $title ) );
-	
+
 		if ( \SubpageNavigation::breadcrumbIsEnabled( $skin ) ) {
 			$titleText = $outputPage->getPageTitle();
-        
+
 			if ( \SubpageNavigation::parseSubpage( $titleText, $current ) ) {
 				$outputPage->setPageTitle( $current );
 			}
 		}
 	}
-	
+
 	/**
 	 * @param Skin $skin
 	 * @param array &$sidebar
@@ -143,4 +144,3 @@ class SubpageNavigationHooks {
 	}
 
 }
-
