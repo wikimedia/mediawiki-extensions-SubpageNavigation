@@ -261,7 +261,7 @@ class SubpageNavigation {
 			$ret = [];
 			foreach ( $sqls as $sql ) {
 				$res = $dbr->query( $sql, __METHOD__ );
-				$row = $dbr->fetchObject( $res );
+				$row = $res->fetchObject();
 				if ( $row ) {
 					$ret[] = $row->count;
 				}
