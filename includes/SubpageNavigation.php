@@ -125,7 +125,7 @@ class SubpageNavigation {
 		$linkRenderer = $services->getLinkRenderer();
 		$separator = '&#32;/&#32;';
 
-		$specialPages = SpecialPage::getTitleFor( 'SpecialPages' );
+		$specialPages = SpecialPage::getTitleFor( 'Specialpages' );
 		if ( $title->isSpecialPage() && $title->getFullText() !== $specialPages->getFullText() ) {
 			$specialPageFactory = $services->getSpecialPageFactory();
 			$page = $specialPageFactory->getPage( $titleText );
@@ -251,11 +251,30 @@ class SubpageNavigation {
 	 * @return array
 	 */
 	public static function getChildrenCount( $dbr, $titlesText, $namespace ) {
+		// @ATTENTION!! removed from Wikimedia\Rdbms\Database since MW 1.4.1 !!
+		if ( !method_exists( $dbr, 'queryMulti' ) ) {
+			// @credits: Zoranzoki21 aka Kizule
+			$sqls = array_map( function ( $text ) use ( $dbr, $namespace ) {
+				return self::subpagesSQL( $dbr, str_replace( ' ', '_', $text ) . '/', $namespace, self::MODE_COUNT );
+			}, $titlesText );
+
+			$ret = [];
+			foreach ( $sqls as $sql ) {
+				$res = $dbr->query( $sql, __METHOD__ );
+				$row = $dbr->fetchObject( $res );
+				if ( $row ) {
+					$ret[] = $row->count;
+				}
+			}
+			return $ret;
+		// ----------------------
+		}
 		$sqls = [];
 		foreach ( $titlesText as $text ) {
 			$text = str_replace( ' ', '_', $text );
 			$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );
 		}
+
 		$resMap = $dbr->queryMulti( $sqls, __METHOD__ );
 		// @see DatabaseMysqlTest
 		reset( $resMap );
