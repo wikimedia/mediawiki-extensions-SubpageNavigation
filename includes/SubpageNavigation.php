@@ -311,22 +311,24 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @param IDatabase $dbr
+	 * @param \IDatabase $dbr
 	 * @param string $prefix
 	 * @param int $namespace
 	 * @param int $mode
-	 * @return string
+	 * @return string|\ResultWrapper
 	 */
 	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode ) {
 		$cond = 'page_namespace = ' . $namespace
-			. ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
+			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
 				: '' );
+
 		$pageTable = $dbr->tableName( 'page' );
 
 		switch ( $mode ) {
 			case self::MODE_COUNT:
 			case self::MODE_DEFAULT:
 				$select = ( $mode !== self::MODE_COUNT ? ' DISTINCT t1.*' : 'COUNT(*) as count' );
+
 				// the 2nd join is used to select
 				// intermediate pages and to exclude them
 				return "SELECT $select
@@ -343,6 +345,7 @@ LEFT JOIN(
 ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 ";
+
 			// the 3rd join is used to select
 			// only t1 entries with children
 			case self::MODE_FOLDERS:
@@ -366,10 +369,12 @@ JOIN(
 ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 ";
+
 			// the first select selects only
 			// articles with children (excluding intermediate
 			// pages), and the 2nd select selects
 			// only articles without children
+
 			case self::MODE_FILESYSTEM:
 				return "SELECT DISTINCT t1.*
 FROM (
@@ -411,7 +416,7 @@ LEFT JOIN(
 ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 ";
-		}
-		// switch
+
+		} // switch
 	}
 }
