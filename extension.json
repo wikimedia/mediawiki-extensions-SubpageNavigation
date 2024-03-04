@@ -35,10 +35,8 @@
 		"BeforePageDisplay": "SubpageNavigationHooks::onBeforePageDisplay",
 		"ArticleViewNavigation": "SubpageNavigationHooks::onArticleViewNavigation",
 		"SkinSubPageSubtitle": "SubpageNavigationHooks::onSkinSubPageSubtitle",
-		"AfterFinalPageOutput": "SubpageNavigationHooks::onAfterFinalPageOutput",
 		"SkinAfterPortlet": "SubpageNavigationHooks::onSkinAfterPortlet",
-		"SkinBuildSidebar": "SubpageNavigationHooks::onSkinBuildSidebar",
-		"SkinTemplateNavigation::Universal": "SubpageNavigationHooks::onSkinTemplateNavigation_Universal"
+		"SkinBuildSidebar": "SubpageNavigationHooks::onSkinBuildSidebar"
 	},
 	"ConfigRegistry": {
 		"subpagenavigation": "GlobalVarConfig::newInstance"
