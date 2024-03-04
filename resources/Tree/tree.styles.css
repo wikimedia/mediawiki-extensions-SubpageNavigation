@@ -1,0 +1,146 @@
+/* @credits: https://www.mediawiki.org/wiki/Extension:CategoryTree */
+/* stylelint-disable selector-max-id */
+/* stylelint-disable no-descending-specificity */
+
+.client-js #mw-subcategories ul {
+	list-style: none;
+}
+
+/* @noflip */
+.client-js #mw-subcategories .mw-content-ltr ul {
+	margin-left: 0.25em;
+}
+
+/* @noflip */
+.client-js #mw-subcategories .mw-content-rtl ul {
+	margin-right: 0.25em;
+}
+
+#mw-panel .portal .body .SubpageNavigationTreeTag {
+	margin: 0;
+	font-size: 0.75em;
+	line-height: 1.125em;
+}
+
+#mw-panel .portal .body .SubpageNavigationTreeItem {
+	padding: 0.25em 0;
+}
+
+.SubpageNavigationTreeChildren {
+	margin-left: 1.25em;
+}
+
+/* @noflip */
+.mw-content-ltr .SubpageNavigationTreeChildren,
+.mw-content-rtl .mw-content-ltr .SubpageNavigationTreeChildren {
+	margin: 0 0 0 1.25em;
+}
+
+/* @noflip */
+.mw-content-rtl .SubpageNavigationTreeChildren,
+.mw-content-ltr .mw-content-rtl .SubpageNavigationTreeChildren {
+	margin: 0 1.25em 0 0;
+}
+
+.SubpageNavigationTreeBullet,
+.SubpageNavigationTreeEmptyBullet {
+	cursor: default;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.SubpageNavigationTreeEmptyBullet {
+	color: #c0c0c0;
+}
+
+.SubpageNavigationTreeBullet a,
+.SubpageNavigationTreeBullet a:link,
+.SubpageNavigationTreeBullet a:active,
+.SubpageNavigationTreeBullet a:visited {
+	text-decoration: none;
+	color: inherit;
+	speak: none;
+}
+
+.client-nojs .SubpageNavigationTreeBullet,
+.client-nojs .SubpageNavigationTreeEmptyBullet {
+	display: none;
+}
+
+.SubpageNavigationTreeToggle {
+	color: #0645ad;
+}
+
+.SubpageNavigationTreeEmptyBullet,
+.SubpageNavigationTreeToggle,
+.SubpageNavigationTreePageBullet {
+	display: inline-block;
+	width: 0;
+	height: 0;
+}
+
+.SubpageNavigationTreeEmptyBullet,
+.SubpageNavigationTreeToggle[ data-subpagenavigation-state='collapsed' ] {
+	border-top: 5px solid transparent;
+	border-left: 10px solid;
+	border-bottom: 5px solid transparent;
+	border-right: 0 none;
+}
+
+/* @noflip */
+.mw-content-ltr .SubpageNavigationTreeEmptyBullet,
+.mw-content-ltr .SubpageNavigationTreeToggle[ data-subpagenavigation-state='collapsed' ],
+.mw-content-rtl .mw-content-ltr .SubpageNavigationTreeEmptyBullet,
+.mw-content-rtl .mw-content-ltr .SubpageNavigationTreeToggle[ data-subpagenavigation-state='collapsed' ] {
+	border-left: 10px solid;
+	border-right: 0 none;
+}
+
+/* @noflip */
+.mw-content-rtl .SubpageNavigationTreeEmptyBullet,
+.mw-content-rtl .SubpageNavigationTreeToggle[ data-subpagenavigation-state='collapsed' ],
+.mw-content-ltr .mw-content-rtl .SubpageNavigationTreeEmptyBullet,
+.mw-content-ltr .mw-content-rtl .SubpageNavigationTreeToggle[ data-subpagenavigation-state='collapsed' ] {
+	border-right: 10px solid;
+	border-left: 0 none;
+}
+
+.SubpageNavigationTreeToggle[ data-subpagenavigation-state='expanded' ] {
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 10px solid;
+}
+
+.SubpageNavigationTreePageBullet {
+	border-left: 10px solid transparent;
+}
+
+.SubpageNavigationTreeLabelPage {
+	font-style: italic;
+}
+
+.SubpageNavigationTreeParents {
+	margin-top: 1.5ex;
+	font-style: italic;
+}
+
+.SubpageNavigationTreeTag {
+	margin-top: 0.5ex;
+	margin-bottom: 0.5ex;
+}
+
+.SubpageNavigationTreeResult {
+	margin-top: 1.5ex;
+}
+
+.SubpageNavigationTreeNotice {
+	font-style: italic;
+}
+
+.SubpageNavigationTreeSearch {
+	font-style: italic;
+	color: #8b0000;
+	font-weight: bold;
+}

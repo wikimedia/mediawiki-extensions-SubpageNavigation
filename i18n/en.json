@@ -2,6 +2,9 @@
 	"@metadata": {
 		"authors": []
 	},
+
+	"subpagenavigation-tree": "Subpage navigation",
+	"subpagenavigation-portlet": "",
 	"subpagenavigation-extension-desc": "Shows direct children of current page in article navigation",
 	"specialpages-group-subpagenavigation": "SubpageNavigation",
 	"apihelp-subpagenavigation-check-latest-version-summary": "subpagenavigation check latest version",
@@ -14,7 +17,23 @@
 	"subpagenavigation-jsmodule-outdated-version": "This version of SubpageNavigation is outdated. <a href=\"https://www.mediawiki.org/wiki/Special:ExtensionDistributor/SubpageNavigation\">Update</a>",
 	"subpagenavigation-list-show-all": "show all...",
 	"subpagenavigation-browse-topnav": "mode",
+	"subpagenavigation-browse-topnav-namespace": "namespace",
 	"subpagenavigation-browse-default": "default",
 	"subpagenavigation-browse-folders": "folders",
-	"subpagenavigation-browse-filesystem": "filesystem"
+	"subpagenavigation-browse-filesystem": "filesystem",
+	"apihelp-subpagenavigation-tree-summary": "subpagenavigation tree summary",
+	"apihelp-subpagenavigation-tree-param-title": "subpagenavigation tree param title",
+	"apihelp-subpagenavigation-tree-param-options": "subpagenavigation tree param options",
+
+	"subpagenavigation-toc-title": "Pages",
+	"subpagenavigation-tree-collapse": "collapse",
+	"subpagenavigation-tree-expand": "expand",
+	"subpagenavigation-tree-member-counts": "Contains {{PLURAL:$1|1 subpage|$1 subpages}}",
+	"subpagenavigation-tree-member-num": "($1)",
+	"subpagenavigation-tree-load": "load",
+	"subpagenavigation-tree-loading": "loading…",
+	"subpagenavigation-tree-nothing-found": "nothing found",
+	"subpagenavigation-tree-no-subpages": "no subpages",
+	"subpagenavigation-tree-error": "Problem loading data.",
+	"subpagenavigation-tree-retry": "Please wait a moment and try again."
 }

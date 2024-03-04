@@ -1,7 +1,7 @@
 {
 	"name": "SubpageNavigation",
 	"author": "thomas-topway-it",
-	"version": "1.1",
+	"version": "1.2",
 	"url": "https://www.mediawiki.org/wiki/Extension:SubpageNavigation",
 	"descriptionmsg": "subpagenavigation-extension-desc",
 	"license-name": "GPL-2.0-or-later",
@@ -14,9 +14,13 @@
 		]
 	},
 	"callback": "SubpageNavigationHooks::onRegistration",
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\SubpageNavigation\\": "includes/tree"
+	},
 	"AutoloadClasses": {
 		"SubpageNavigationHooks": "includes/SubpageNavigationHooks.php",
 		"SubpageNavigation": "includes/SubpageNavigation.php",
+		"Skins\\Chameleon\\Components\\SubpageNavigationTree": "includes/chameleon/SubpageNavigationTree.php",
 		"SubpageNavigationApiCheckLatestVersion": "includes/api/SubpageNavigationApiCheckLatestVersion.php",
 		"SpecialSubpageNavigationBrowse": "includes/specials/SpecialSubpageNavigationBrowse.php"
 	},
@@ -30,12 +34,25 @@
 		"MediaWikiServices": "SubpageNavigationHooks::onMediaWikiServices",
 		"BeforePageDisplay": "SubpageNavigationHooks::onBeforePageDisplay",
 		"ArticleViewNavigation": "SubpageNavigationHooks::onArticleViewNavigation",
-		"SkinSubPageSubtitle": "SubpageNavigationHooks::onSkinSubPageSubtitle"
+		"SkinSubPageSubtitle": "SubpageNavigationHooks::onSkinSubPageSubtitle",
+		"AfterFinalPageOutput": "SubpageNavigationHooks::onAfterFinalPageOutput",
+		"SkinAfterPortlet": "SubpageNavigationHooks::onSkinAfterPortlet",
+		"SkinBuildSidebar": "SubpageNavigationHooks::onSkinBuildSidebar",
+		"SkinTemplateNavigation::Universal": "SubpageNavigationHooks::onSkinTemplateNavigation_Universal"
+	},
+	"ConfigRegistry": {
+		"subpagenavigation": "GlobalVarConfig::newInstance"
 	},
 	"SpecialPages": {
 		"SubpageNavigationBrowse": "SpecialSubpageNavigationBrowse"
 	},
 	"APIModules": {
+		"subpagenavigation-tree": {
+			"class": "MediaWiki\\Extension\\SubpageNavigation\\Api",
+			"services": [
+				"ConfigFactory"
+			]
+		},
 		"subpagenavigation-check-latest-version": "SubpageNavigationApiCheckLatestVersion"
 	},
 	"ResourceFileModulePaths": {
@@ -59,7 +76,65 @@
 			"messages": [
 				"subpagenavigation-jsmodule-outdated-version"
 			]
+		},
+		"ext.SubpageNavigation.styles": {
+			"targets": [
+				"desktop",
+				"mobile"
+			],
+			"styles": [
+				"Tree/tree.styles.css",
+				"Tree/tree.css"
+			]
+		},
+		"ext.SubpageNavigation.tree": {
+			"packageFiles": [
+				"Tree/tree.js",
+				{
+					"name": "Tree/data.json",
+					"callback": "MediaWiki\\Extension\\SubpageNavigation\\Tree::getDataForJs"
+				}
+			],
+			"targets": [
+				"desktop",
+				"mobile"
+			],
+			"messages": [
+				"subpagenavigation-tree-collapse",
+				"subpagenavigation-tree-expand",
+				"subpagenavigation-tree-load",
+				"subpagenavigation-tree-loading",
+				"subpagenavigation-tree-nothing-found",
+				"subpagenavigation-tree-no-subpages",
+				"subpagenavigation-tree-error",
+				"subpagenavigation-tree-retry"
+			],
+			"dependencies": [
+				"mediawiki.api"
+			]
 		}
 	},
-	"manifest_version": 1
+	"config": {
+		"SubpageNavigationCacheStore": {
+			"value": "SessionCache"
+		},
+		"SubpageNavigationShowTree": {
+			"value": true
+		},
+		"SubpageNavigationShowCount": {
+			"value": true
+		},
+		"SubpageNavigationTreeLimit": {
+			"value": 30
+		},
+		"SubpageNavigationDisableCache": {
+			"value": 21600
+		},
+		"SubpageNavigationDefaultOptions": {
+			"value": {
+				"showcount": true
+			}
+		}
+	},
+	"manifest_version": 2
 }

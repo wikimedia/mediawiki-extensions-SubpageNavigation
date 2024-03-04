@@ -3,6 +3,9 @@
 		"authors": []
 	},
 	"subpagenavigation-extension-desc": "A label message",
+	"subpagenavigation-tree": "A label message",
+	"subpagenavigation-portlet": "A label message",
+	"subpagenavigation-browse-topnav-namespace": "A label message",
 	"specialpages-group-subpagenavigation": "A label message",
 	"apihelp-subpagenavigation-check-latest-version-summary": "A label message",
 	"subpagenavigationbrowse": "A label message",
@@ -16,5 +19,20 @@
 	"subpagenavigation-browse-topnav": "A label message",
 	"subpagenavigation-browse-default": "A label message",
 	"subpagenavigation-browse-folders": "A label message",
-	"subpagenavigation-browse-filesystem": "A label message"
+	"subpagenavigation-browse-filesystem": "A label message",
+	"apihelp-subpagenavigation-tree-summary": "A label message",
+	"apihelp-subpagenavigation-tree-param-title": "A label message",
+	"apihelp-subpagenavigation-tree-param-options": "A label message",
+
+	"subpagenavigation-toc-title": "A label message",
+	"subpagenavigation-tree-collapse": "A label message",
+	"subpagenavigation-tree-expand": "A label message",
+	"subpagenavigation-tree-member-counts": "A label message",
+	"subpagenavigation-tree-member-num": "A label message",
+	"subpagenavigation-tree-load": "A label message",
+	"subpagenavigation-tree-loading": "A label message",
+	"subpagenavigation-tree-nothing-found": "A label message",
+	"subpagenavigation-tree-no-subpages": "A label message",
+	"subpagenavigation-tree-error": "A label message",
+	"subpagenavigation-tree-retry": "A label message"
 }

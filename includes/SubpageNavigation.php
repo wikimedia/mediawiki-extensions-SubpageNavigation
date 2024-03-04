@@ -20,6 +20,8 @@
  * @author thomas-topway-it <support@topway.it>
  * @copyright Copyright ©2023, https://wikisphere.org
  */
+
+use MediaWiki\Extension\SubpageNavigation\Tree as SubpageNavigationTree;
 use MediaWiki\MediaWikiServices;
 
 class SubpageNavigation {
@@ -188,7 +190,7 @@ class SubpageNavigation {
 		if ( is_object( $title ) && $title->isKnown() ) {
 			array_pop( $arr );
 
-			// handle non existing article
+		// handle non existing article
 		} else {
 			$current = substr( $title->getText(), strlen( $currentTitle->getText() ) + 1 );
 		}
@@ -221,12 +223,72 @@ class SubpageNavigation {
 	}
 
 	/**
+	 * @return CachedBagOStuff|LocalServerObjectCache
+	 */
+	public static function getCache() {
+		switch ( $GLOBALS['wgSubpageNavigationCacheStore'] ) {
+			case 'LocalServerObjectCache':
+				return MediaWikiServices::getInstance()->getLocalServerObjectCache();
+
+			case 'SessionCache':
+			default:
+				// @see MediaWiki\Session\SessionManager
+				$config = MediaWikiServices::getInstance()->getMainConfig();
+				$store = \ObjectCache::getInstance( $config->get( MediaWiki\MainConfigNames::SessionCacheType ) );
+				return new CachedBagOStuff( $store );
+		}
+	}
+
+	/**
+	 * @param string $cond
+	 * @return int
+	 */
+	public static function getTouched( $cond ) {
+		$dbr = wfGetDB( DB_REPLICA );
+		$pageTable = $dbr->tableName( 'page' );
+		$sql = "SELECT page_touched FROM $pageTable WHERE $cond ORDER BY page_touched DESC LIMIT 1";
+
+		$res = $dbr->query( $sql, __METHOD__ );
+		$row = $res->fetchObject();
+		if ( !$row ) {
+			return 0;
+		}
+
+		return $row->page_touched;
+	}
+
+	/**
 	 * @param string $prefix
 	 * @param int $namespace
 	 * @param int|null $limit
 	 * @return array
 	 */
 	public static function getSubpages( $prefix, $namespace, $limit = null ) {
+		$cache = self::getCache();
+		$obj = $cache->get( 'subpage-navigation-keys' );
+
+		if ( $obj === false ) {
+			$obj = [];
+		}
+
+		$dbr = wfGetDB( DB_REPLICA );
+		$cond = 'page_namespace = ' . $namespace
+			 . ' AND page_is_redirect = 0'
+			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
+				: '' );
+
+		$touched = self::getTouched( $cond );
+
+		$key = md5( $cond );
+		$key_ = 'subpage-navigation-' . $key;
+		if ( !empty( $obj[$key] ) && $obj[$key] === $touched ) {
+			$ret = $cache->get( $key_ );
+			// this should always be true
+			if ( $ret !== false ) {
+				return $ret;
+			}
+		}
+
 		$dbr = wfGetDB( DB_REPLICA );
 		$sql = self::subpagesSQL( $dbr, $prefix, $namespace, self::MODE_DEFAULT );
 		if ( $limit ) {
@@ -241,6 +303,11 @@ class SubpageNavigation {
 				$ret[] = $title;
 			}
 		}
+
+		$obj[$key] = $touched;
+		$cache->set( 'subpage-navigation-keys', $obj, $cache::TTL_INDEFINITE );
+		$cache->set( $key_, $ret, $cache::TTL_INDEFINITE );
+
 		return $ret;
 	}
 
@@ -251,7 +318,37 @@ class SubpageNavigation {
 	 * @return array
 	 */
 	public static function getChildrenCount( $dbr, $titlesText, $namespace ) {
-		// @ATTENTION!! removed from Wikimedia\Rdbms\Database since MW 1.4.1 !!
+		$cache = self::getCache();
+		$obj = $cache->get( 'subpage-navigation-children-keys' );
+
+		if ( $obj === false ) {
+			$obj = [];
+		}
+
+		$arr = [];
+		foreach ( $titlesText as $text ) {
+			$arr[] = 'page_title LIKE ' . $dbr->addQuotes( str_replace( ' ', '_', $text ) . '%' );
+		}
+
+		$cond = 'page_namespace = ' . $namespace
+			 . ' AND page_is_redirect = 0'
+			 . ( count( $arr ) ? ' AND ( ' . implode( ' OR ', $arr ) . ')' : '' );
+
+		$touched = self::getTouched( $cond );
+
+		$key = md5( $cond );
+		$key_ = 'subpage-navigation-children' . $key;
+
+		if ( !empty( $obj[$key] ) && $obj[$key] === $touched ) {
+			$ret = $cache->get( $key_ );
+			// this should always be true
+			if ( $ret !== false ) {
+				return $ret;
+			}
+		}
+
+		// @ATTENTION!! queryMulti has been removed
+		// from Wikimedia\Rdbms\Database since MW 1.4.1 !!
 		if ( !method_exists( $dbr, 'queryMulti' ) ) {
 			// @credits: Zoranzoki21 aka Kizule
 			$sqls = array_map( function ( $text ) use ( $dbr, $namespace ) {
@@ -266,27 +363,32 @@ class SubpageNavigation {
 					$ret[] = $row->count;
 				}
 			}
-			return $ret;
 		// ----------------------
-		}
-		$sqls = [];
-		foreach ( $titlesText as $text ) {
-			$text = str_replace( ' ', '_', $text );
-			$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );
-		}
+		} else {
+			$sqls = [];
+			foreach ( $titlesText as $text ) {
+				$text = str_replace( ' ', '_', $text );
+				$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );
+			}
 
-		$resMap = $dbr->queryMulti( $sqls, __METHOD__ );
-		// @see DatabaseMysqlTest
-		reset( $resMap );
-		$ret = [];
-		foreach ( $resMap as $i => $qs ) {
-			if ( is_iterable( $qs->res ) ) {
-				foreach ( $qs->res as $row ) {
-					$ret[] = $row->count;
-					break;
+			$resMap = $dbr->queryMulti( $sqls, __METHOD__ );
+			// @see DatabaseMysqlTest
+			reset( $resMap );
+			$ret = [];
+			foreach ( $resMap as $i => $qs ) {
+				if ( is_iterable( $qs->res ) ) {
+					foreach ( $qs->res as $row ) {
+						$ret[] = $row->count;
+						break;
+					}
 				}
 			}
 		}
+
+		$obj[$key] = $touched;
+		$cache->set( 'subpage-navigation-children-keys', $obj, $cache::TTL_INDEFINITE );
+		$cache->set( $key_, $ret, $cache::TTL_INDEFINITE );
+
 		return $ret;
 	}
 
@@ -319,10 +421,13 @@ class SubpageNavigation {
 	 */
 	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode ) {
 		$cond = 'page_namespace = ' . $namespace
+			 . ' AND page_is_redirect = 0'
 			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
 				: '' );
 
 		$pageTable = $dbr->tableName( 'page' );
+
+		// @FIXME use the new MediaWiko's SQL api if possible
 
 		switch ( $mode ) {
 			case self::MODE_COUNT:
@@ -419,4 +524,19 @@ WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 
 		} // switch
 	}
+
+	/**
+	 * @param Output $output
+	 * @return string
+	 */
+	public static function getTreeHtml( $output ) {
+		$options = [];
+		$tree = new SubpageNavigationTree( $options );
+		$treeHtml = $tree->getTree( $output );
+
+		// this creates a MW's TOC like toggle
+		return '<div id="subpagenavigation-tree" class="SubpageNavigationTreeContainer">'
+			. SubpageNavigationTree::tocList( $treeHtml ) . '</div>';
+	}
+
 }

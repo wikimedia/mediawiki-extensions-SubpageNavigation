@@ -18,9 +18,10 @@
  * @file
  * @ingroup extensions
  * @author thomas-topway-it <support@topway.it>
- * @copyright Copyright ©2023, https://wikisphere.org
+ * @copyright Copyright ©2023-2024, https://wikisphere.org
  */
 
+use MediaWiki\Extension\SubpageNavigation\Tree as SubpageNavigationTree;
 use MediaWiki\MediaWikiServices;
 
 class SubpageNavigationHooks {
@@ -75,6 +76,48 @@ class SubpageNavigationHooks {
 	}
 
 	/**
+	 * @param Skin $skin
+	 * @param array &$sidebar
+	 */
+	public static function onSkinBuildSidebar( $skin, &$sidebar ) {
+		if ( empty( $GLOBALS['wgSubpageNavigationShowTree'] ) ) {
+			return;
+		}
+
+		$title = $skin->getTitle();
+
+		if ( $title->isSpecialPage() ) {
+			return;
+		}
+
+		// *** place on top
+		$sidebar = array_merge(
+			[ 'subpagenavigation-portlet' => [] ],
+			$sidebar
+		);
+	}
+
+	/**
+	 * @param Skin $skin
+	 * @param string $portlet
+	 * @param string &$html
+	 */
+	public static function onSkinAfterPortlet( $skin, $portlet, &$html ) {
+		if ( $portlet === 'subpagenavigation-portlet' ) {
+			$html = \SubpageNavigation::getTreeHtml( $skin->getOutput() );
+		}
+	}
+
+	/**
+	 * @param SkinTemplate $skinTemplate
+	 * @param array &$links
+	 * @param string &$html
+	 */
+	// phpcs:ignore MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
+	// public static function onSkinTemplateNavigation_Universal( SkinTemplate $skinTemplate, array &$links ) {
+	// }
+
+	/**
 	 * @param OutputPage $outputPage
 	 * @param Skin $skin
 	 * @return void
@@ -100,8 +143,6 @@ class SubpageNavigationHooks {
 		// used by WikidataPageBanner to place the banner
 		// $outputPage->addSubtitle( 'addSubtitle' );
 
-		$outputPage->addModules( [ 'ext.SubpageNavigationSubpages' ] );
-
 		\SubpageNavigation::addHeaditem( $outputPage, [
 			[ 'stylesheet', $wgResourceBasePath . '/extensions/SubpageNavigation/resources/style.css' ],
 		] );
@@ -110,9 +151,15 @@ class SubpageNavigationHooks {
 			return;
 		}
 
+		if ( !empty( $GLOBALS['wgSubpageNavigationShowTree'] ) ) {
+			SubpageNavigationTree::setHeaders( $outputPage );
+		}
+
 		if ( !empty( $_REQUEST['action'] ) && $_REQUEST['action'] !== 'view' ) {
 			return;
 		}
+
+		$outputPage->addModules( [ 'ext.SubpageNavigationSubpages' ] );
 
 		// *** this is rendered after than onArticleViewHeader
 		$outputPage->prependHTML( \SubpageNavigation::getSubpageHeader( $title ) );
@@ -138,6 +185,11 @@ class SubpageNavigationHooks {
 
 		$specialpage_title = SpecialPage::getTitleFor( 'SubpageNavigationBrowse' );
 		$sidebar['TOOLBOX'][] = [
+			'text'   => wfMessage( 'subpagenavigation-sidebar' )->text(),
+			'href'   => $specialpage_title->getLocalURL()
+		];
+
+		$sidebar['subpagenavigation-tree'][] = [
 			'text'   => wfMessage( 'subpagenavigation-sidebar' )->text(),
 			'href'   => $specialpage_title->getLocalURL()
 		];
