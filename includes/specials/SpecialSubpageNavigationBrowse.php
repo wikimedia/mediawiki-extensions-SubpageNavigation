@@ -280,8 +280,8 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			$msg = $this->msg( $msgName )->parse();
 
 			if ( $mode === (int)$this->getRequest()->getVal( 'mode' )
-				|| ( empty( $this->getRequest()->getVal( 'mode' )
-					&& $mode === \SubpageNavigation::MODE_DEFAULT ) ) ) {
+				|| ( empty( $this->getRequest()->getVal( 'mode' ) )
+					&& $mode === \SubpageNavigation::MODE_DEFAULT ) ) {
 				$links[] = Xml::tags( 'strong', null, $msg );
 			} else {
 				$links[] = $this->getSpecialLink( $this->title, $msg, $mode, (int)$this->getRequest()->getVal( 'namespace' ) );

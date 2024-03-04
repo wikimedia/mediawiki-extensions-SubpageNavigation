@@ -13,6 +13,7 @@
 	background: transparent;
 }
 
+.vector-menu-portal.mw-portlet-subpagenavigation-portlet,
 .vector-legacy-sidebar .vector-menu-portal.mw-portlet-subpagenavigation-portlet {
 	margin: 0;
 }
