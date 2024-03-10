@@ -177,8 +177,11 @@ class Tree {
 	public function renderChildren( Title $title, $api = false ) {
 		$prefix = ( !$api ? '' : $title->getDBkey() );
 		$namespace = $title->getNamespace();
-		$limit = $GLOBALS['wgSubpageNavigationTreeLimit'];
 
+		$limit = isset( $GLOBALS['wgSubpageNavigationTreeSubpagesLimit'] )
+			&& is_numeric( $GLOBALS['wgSubpageNavigationTreeSubpagesLimit'] )
+			? (int)$GLOBALS['wgSubpageNavigationTreeSubpagesLimit']
+			: 30;
 		$limit_ = $limit + 1;
 		$subpages = \SubpageNavigation::getSubpages( "$prefix/", $namespace, $limit_ );
 
@@ -192,7 +195,7 @@ class Tree {
 			$titlesText[] = $title_->getText();
 		}
 
-		if ( !empty( $GLOBALS['wgSubpageNavigationShowCount'] ) ) {
+		if ( !empty( $GLOBALS['wgSubpageNavigationTreeShowChildrenCount'] ) ) {
 			$dbr = wfGetDB( DB_REPLICA );
 			$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $namespace );
 

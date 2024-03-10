@@ -159,10 +159,12 @@ class SubpageNavigationHooks {
 			return;
 		}
 
-		$outputPage->addModules( [ 'ext.SubpageNavigationSubpages' ] );
+		if ( !empty( $GLOBALS['wgSubpageNavigationShowArticleHeader'] ) ) {
+			$outputPage->addModules( [ 'ext.SubpageNavigationSubpages' ] );
 
-		// *** this is rendered after than onArticleViewHeader
-		$outputPage->prependHTML( \SubpageNavigation::getSubpageHeader( $title ) );
+			// *** this is rendered after than onArticleViewHeader
+			$outputPage->prependHTML( \SubpageNavigation::getSubpageHeader( $title ) );
+		}
 
 		if ( \SubpageNavigation::breadcrumbIsEnabled( $skin ) ) {
 			$titleText = $outputPage->getPageTitle();

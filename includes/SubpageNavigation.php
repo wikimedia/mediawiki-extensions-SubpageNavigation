@@ -56,9 +56,9 @@ class SubpageNavigation {
 	 */
 	public static function getSubpageHeader( $title ) {
 		// or use getPrefixedDBKey
-		$limit = isset( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesThreshold'] )
-		&& is_numeric( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesThreshold'] )
-			? (int)$GLOBALS['wgSubpageNavigationArticleHeaderSubpagesThreshold']
+		$limit = isset( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesLimit'] )
+			&& is_numeric( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesLimit'] )
+			? (int)$GLOBALS['wgSubpageNavigationArticleHeaderSubpagesLimit']
 			: 20;
 		$limit_ = $limit + 1;
 		$subpages = self::getSubpages( $title->getDBkey() . '/', $title->getNamespace(), $limit_ );
@@ -223,9 +223,13 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @return CachedBagOStuff|LocalServerObjectCache
+	 * @return CachedBagOStuff|LocalServerObjectCache|false
 	 */
 	public static function getCache() {
+		if ( !empty( $GLOBALS['wgSubpageNavigationDisableCache'] ) ) {
+			return false;
+		}
+
 		switch ( $GLOBALS['wgSubpageNavigationCacheStore'] ) {
 			case 'LocalServerObjectCache':
 				return MediaWikiServices::getInstance()->getLocalServerObjectCache();
@@ -264,7 +268,29 @@ class SubpageNavigation {
 	 * @return array
 	 */
 	public static function getSubpages( $prefix, $namespace, $limit = null ) {
-		$cache = self::getCache();
+		$callback = function () use ( $prefix, $namespace, $limit ) {
+			$dbr = wfGetDB( DB_REPLICA );
+			$sql = self::subpagesSQL( $dbr, $prefix, $namespace, self::MODE_DEFAULT );
+			if ( $limit ) {
+				$offset = 0;
+				$sql = $dbr->limitResult( $sql, $limit, $offset );
+			}
+			// phpcs:ignore MediaWiki.Usage.MagicConstantClosure.FoundConstantMethod
+			$res = $dbr->query( $sql, __METHOD__ );
+			$ret = [];
+			foreach ( $res as $row ) {
+				$title = Title::newFromRow( $row );
+				if ( $title->isKnown() ) {
+					$ret[] = $title;
+				}
+			}
+			return $ret;
+		};
+		// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+		if ( ( $cache = self::getCache() ) === false ) {
+			return $callback();
+		}
+
 		$obj = $cache->get( 'subpage-navigation-keys' );
 
 		if ( $obj === false ) {
@@ -289,21 +315,7 @@ class SubpageNavigation {
 			}
 		}
 
-		$dbr = wfGetDB( DB_REPLICA );
-		$sql = self::subpagesSQL( $dbr, $prefix, $namespace, self::MODE_DEFAULT );
-		if ( $limit ) {
-			$offset = 0;
-			$sql = $dbr->limitResult( $sql, $limit, $offset );
-		}
-		$res = $dbr->query( $sql, __METHOD__ );
-		$ret = [];
-		foreach ( $res as $row ) {
-			$title = Title::newFromRow( $row );
-			if ( $title->isKnown() ) {
-				$ret[] = $title;
-			}
-		}
-
+		$ret = $callback();
 		$obj[$key] = $touched;
 		$cache->set( 'subpage-navigation-keys', $obj, $cache::TTL_INDEFINITE );
 		$cache->set( $key_, $ret, $cache::TTL_INDEFINITE );
@@ -318,7 +330,54 @@ class SubpageNavigation {
 	 * @return array
 	 */
 	public static function getChildrenCount( $dbr, $titlesText, $namespace ) {
-		$cache = self::getCache();
+		$callback = function () use ( $dbr, $titlesText, $namespace ) {
+			// @ATTENTION!! queryMulti has been removed
+			// from Wikimedia\Rdbms\Database since MW 1.4.1 !!
+			if ( !method_exists( $dbr, 'queryMulti' ) ) {
+				// @credits: Zoranzoki21 aka Kizule
+				$sqls = array_map( function ( $text ) use ( $dbr, $namespace ) {
+					return self::subpagesSQL( $dbr, str_replace( ' ', '_', $text ) . '/', $namespace, self::MODE_COUNT );
+				}, $titlesText );
+
+				$ret = [];
+				foreach ( $sqls as $sql ) {
+					// phpcs:ignore MediaWiki.Usage.MagicConstantClosure.FoundConstantMethod
+					$res = $dbr->query( $sql, __METHOD__ );
+					$row = $res->fetchObject();
+					if ( $row ) {
+						$ret[] = $row->count;
+					}
+				}
+			// ----------------------
+				return $ret;
+			}
+			$sqls = [];
+			foreach ( $titlesText as $text ) {
+				$text = str_replace( ' ', '_', $text );
+				$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );
+			}
+
+			// phpcs:ignore MediaWiki.Usage.MagicConstantClosure.FoundConstantMethod
+			$resMap = $dbr->queryMulti( $sqls, __METHOD__ );
+			// @see DatabaseMysqlTest
+			reset( $resMap );
+			$ret = [];
+			foreach ( $resMap as $i => $qs ) {
+				if ( is_iterable( $qs->res ) ) {
+					foreach ( $qs->res as $row ) {
+						$ret[] = $row->count;
+						break;
+					}
+				}
+			}
+			return $ret;
+		};
+
+		// phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+		if ( ( $cache = self::getCache() ) === false ) {
+			return $callback();
+		}
+
 		$obj = $cache->get( 'subpage-navigation-children-keys' );
 
 		if ( $obj === false ) {
@@ -347,44 +406,7 @@ class SubpageNavigation {
 			}
 		}
 
-		// @ATTENTION!! queryMulti has been removed
-		// from Wikimedia\Rdbms\Database since MW 1.4.1 !!
-		if ( !method_exists( $dbr, 'queryMulti' ) ) {
-			// @credits: Zoranzoki21 aka Kizule
-			$sqls = array_map( function ( $text ) use ( $dbr, $namespace ) {
-				return self::subpagesSQL( $dbr, str_replace( ' ', '_', $text ) . '/', $namespace, self::MODE_COUNT );
-			}, $titlesText );
-
-			$ret = [];
-			foreach ( $sqls as $sql ) {
-				$res = $dbr->query( $sql, __METHOD__ );
-				$row = $res->fetchObject();
-				if ( $row ) {
-					$ret[] = $row->count;
-				}
-			}
-		// ----------------------
-		} else {
-			$sqls = [];
-			foreach ( $titlesText as $text ) {
-				$text = str_replace( ' ', '_', $text );
-				$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );
-			}
-
-			$resMap = $dbr->queryMulti( $sqls, __METHOD__ );
-			// @see DatabaseMysqlTest
-			reset( $resMap );
-			$ret = [];
-			foreach ( $resMap as $i => $qs ) {
-				if ( is_iterable( $qs->res ) ) {
-					foreach ( $qs->res as $row ) {
-						$ret[] = $row->count;
-						break;
-					}
-				}
-			}
-		}
-
+		$ret = $callback();
 		$obj[$key] = $touched;
 		$cache->set( 'subpage-navigation-children-keys', $obj, $cache::TTL_INDEFINITE );
 		$cache->set( $key_, $ret, $cache::TTL_INDEFINITE );

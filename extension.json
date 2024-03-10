@@ -1,7 +1,7 @@
 {
 	"name": "SubpageNavigation",
 	"author": "thomas-topway-it",
-	"version": "1.2",
+	"version": "1.2.1",
 	"url": "https://www.mediawiki.org/wiki/Extension:SubpageNavigation",
 	"descriptionmsg": "subpagenavigation-extension-desc",
 	"license-name": "GPL-2.0-or-later",
@@ -119,14 +119,20 @@
 		"SubpageNavigationShowTree": {
 			"value": true
 		},
-		"SubpageNavigationShowCount": {
+		"SubpageNavigationShowArticleHeader": {
 			"value": true
 		},
-		"SubpageNavigationTreeLimit": {
+		"SubpageNavigationTreeShowChildrenCount": {
+			"value": true
+		},
+		"SubpageNavigationTreeSubpagesLimit": {
 			"value": 30
 		},
+		"SubpageNavigationArticleHeaderSubpagesLimit": {
+			"value": 20
+		},
 		"SubpageNavigationDisableCache": {
-			"value": 21600
+			"value": false
 		},
 		"SubpageNavigationDefaultOptions": {
 			"value": {
