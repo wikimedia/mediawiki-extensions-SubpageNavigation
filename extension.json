@@ -117,6 +117,9 @@
 			"value": "SessionCache"
 		},
 		"SubpageNavigationShowTree": {
+			"value": false
+		},
+		"SubpageNavigationShowBreadcrumbs": {
 			"value": true
 		},
 		"SubpageNavigationShowArticleHeader": {

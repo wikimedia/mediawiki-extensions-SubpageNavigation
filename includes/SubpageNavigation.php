@@ -41,7 +41,7 @@ class SubpageNavigation {
 	 * @return bool
 	 */
 	public static function breadcrumbIsEnabled( $skin ) {
-		if ( !empty( $GLOBALS['wgSubpageNavigationDisableBreadcrumb'] ) ) {
+		if ( empty( $GLOBALS['wgSubpageNavigationShowBreadcrumbs'] ) ) {
 			return false;
 		}
 
