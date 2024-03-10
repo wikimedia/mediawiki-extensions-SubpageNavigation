@@ -31,6 +31,9 @@ class SubpageNavigationTree extends Component {
 	 * @return string
 	 */
 	public function getHtml() {
+		if ( empty( $GLOBALS['wgSubpageNavigationShowTree'] ) ) {
+			return wfMessage( 'subpagenavigation-chameleon-enable-tree' )->text();
+		}
 		return SubpageNavigation::getTreeHtml( $this->getSkin()->getOutput() );
 	}
 

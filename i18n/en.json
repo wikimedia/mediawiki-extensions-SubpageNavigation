@@ -25,6 +25,7 @@
 	"apihelp-subpagenavigation-tree-param-title": "subpagenavigation tree param title",
 	"apihelp-subpagenavigation-tree-param-options": "subpagenavigation tree param options",
 
+	"subpagenavigation-chameleon-enable-tree": "Tree disabled, set <code>$wgSubpageNavigationShowTree = true;</code> in LocalSettings.php",
 	"subpagenavigation-toc-title": "Pages",
 	"subpagenavigation-tree-collapse": "collapse",
 	"subpagenavigation-tree-expand": "expand",
