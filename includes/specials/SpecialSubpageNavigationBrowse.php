@@ -334,7 +334,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			$mode = \SubpageNavigation::MODE_DEFAULT;
 		}
 
-		$query = \SubpageNavigation::subpagesSQL( $dbr,  $this->prefix, $this->namespace, (int)$mode );
+		$query = \SubpageNavigation::subpagesSQL( $dbr, $this->prefix, $this->namespace, (int)$mode );
 
 		$sql = $dbr->limitResult( $query, $limit, $offset );
 

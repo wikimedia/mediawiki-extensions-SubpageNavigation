@@ -85,7 +85,7 @@ class SubpageNavigation {
 			if ( $childCount > 0 ) {
 				$attr['style'] = 'font-weight:bold';
 			}
-			return Html::rawElement( 'li', $attr,  $linkRenderer->makeKnownLink( $value,
+			return Html::rawElement( 'li', $attr, $linkRenderer->makeKnownLink( $value,
 				$label . ( !$childCount ? '' : ' (' . $childCount . ')' ) ) );
 		}, $subpages ) );
 
