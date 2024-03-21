@@ -238,7 +238,8 @@ class SubpageNavigation {
 			default:
 				// @see MediaWiki\Session\SessionManager
 				$config = MediaWikiServices::getInstance()->getMainConfig();
-				$store = \ObjectCache::getInstance( $config->get( MediaWiki\MainConfigNames::SessionCacheType ) );
+				$store = \ObjectCache::getInstance( $config->get(
+					class_exists( 'MainConfigNames' ) ? MainConfigNames::SessionCacheType : 'SessionCacheType' ) );
 				return new CachedBagOStuff( $store );
 		}
 	}
