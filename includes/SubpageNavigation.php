@@ -95,13 +95,11 @@ class SubpageNavigation {
 
 		$children .= Html::closeElement( 'ul' );
 		// @see TemplatesOnThisPageFormatter -> format
-		$outText = Html::openElement( 'div', [ 'class' => [
+		$outText = Html::element( 'div', [ 'class' => [
 			'mw-subpageNavigationExplanation',
 			'mw-editfooter-toggler',
 			'mw-icon-arrow-expanded',
-		] ] );
-		$outText .= wfMessage( 'subpagenavigation-list-explanation' )->plain();
-		$outText .= Html::closeElement( 'div' );
+		] ], wfMessage( 'subpagenavigation-list-explanation' )->plain() );
 		$outText .= $children;
 		if ( $threshold ) {
 			$specialPage = SpecialPage::getTitleFor( 'SubpageNavigationBrowse', $title->getDBkey() );
@@ -557,7 +555,7 @@ WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 	}
 
 	/**
-	 * @param Output $output
+	 * @param OutputPage $output
 	 * @return string
 	 */
 	public static function getTreeHtml( $output ) {

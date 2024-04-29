@@ -30,6 +30,7 @@ use Exception;
 use FormatJson;
 use Html;
 use IContextSource;
+use Language;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MediaWikiServices;
 use OutputPage;
@@ -42,7 +43,7 @@ class Tree {
 	/** @var array */
 	public $mOptions = [];
 
-	/** @var Output */
+	/** @var OutputPage */
 	public $output;
 
 	/** @var LinkRenderer */
@@ -145,7 +146,7 @@ class Tree {
 	}
 
 	/**
-	 * @param Output $output
+	 * @param OutputPage $output
 	 * @return bool|string
 	 */
 	public function getTree( $output ) {
@@ -161,12 +162,13 @@ class Tree {
 			'namespace' => $title->getNamespace()
 		], 'json' );
 
+		// FIXME: This entirely empty <div class=""></div> appears to be a mistake
 		$outText = Html::openElement( 'div', [ 'class' => '' ] );
 		$outText .= Html::closeElement( 'div' );
 
 		$outText .= $this->renderChildren( $title, false );
 
-		$attr['class'] = $attr['class'] . ' subpageNavigation-tree mw-pt-translate-navigation noprint';
+		$attr['class'] .= ' subpageNavigation-tree mw-pt-translate-navigation noprint';
 
 		return Html::rawElement( 'div', $attr, $outText );
 	}

@@ -22,6 +22,8 @@
  * @copyright Copyright ©2023, https://wikisphere.org
  */
 
+use MediaWiki\Html\Html;
+use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 
@@ -168,7 +170,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		$dbr = $this->getRecacheDB();
 		$this->preprocessResults( $dbr, $res );
 
-		$out->addHTML( Xml::openElement( 'div', [ 'class' => 'mw-spcontent' ] ) );
+		$out->addHTML( Html::openElement( 'div', [ 'class' => 'mw-spcontent' ] ) );
 
 		// Top header and navigation
 		// ***edited
@@ -192,7 +194,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 				// No results to show, so don't bother with "showing X of Y" etc.
 				// -- just let the user know and give up now
 				$this->showEmptyText();
-				$out->addHTML( Xml::closeElement( 'div' ) );
+				$out->addHTML( Html::closeElement( 'div' ) );
 				return;
 			}
 		}
@@ -220,7 +222,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			$out->addHTML( '<p>' . $paging . '</p>' );
 		}
 
-		$out->addHTML( Xml::closeElement( 'div' ) );
+		$out->addHTML( Html::closeElement( 'div' ) );
 	}
 
 	/**
@@ -254,7 +256,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			$msg = !empty( $name ) ? $name : 'Main';
 
 			if ( $mode === (int)$this->getRequest()->getVal( 'namespace' ) ) {
-				$links[] = Xml::tags( 'strong', null, $msg );
+				$links[] = Html::element( 'strong', [], $msg );
 			} else {
 				$links[] = $this->getSpecialLink( $this->title, $msg, (int)$this->getRequest()->getVal( 'mode' ), $mode );
 			}
@@ -264,7 +266,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			->rawParams( $this->getLanguage()->pipeList( $links ) )
 			->text();
 		$linkStrNamespace = $this->msg( 'subpagenavigation-browse-topnav-namespace' )->parse() . " $linkStrNamespace";
-		$linkStrNamespace = Xml::tags( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStrNamespace );
+		$linkStrNamespace = Html::rawElement( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStrNamespace );
 
 		$linkDefs = [
 			'default' => 1,
@@ -282,7 +284,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			if ( $mode === (int)$this->getRequest()->getVal( 'mode' )
 				|| ( empty( $this->getRequest()->getVal( 'mode' ) )
 					&& $mode === \SubpageNavigation::MODE_DEFAULT ) ) {
-				$links[] = Xml::tags( 'strong', null, $msg );
+				$links[] = Html::rawElement( 'strong', [], $msg );
 			} else {
 				$links[] = $this->getSpecialLink( $this->title, $msg, $mode, (int)$this->getRequest()->getVal( 'namespace' ) );
 			}
@@ -292,7 +294,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			->rawParams( $this->getLanguage()->pipeList( $links ) )
 			->text();
 		$linkStrMode = $this->msg( 'subpagenavigation-browse-topnav' )->parse() . " $linkStrMode";
-		$linkStrMode = Xml::tags( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStrMode );
+		$linkStrMode = Html::rawElement( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStrMode );
 
 		$this->getOutput()->setSubtitle( $linkStrMode . '<br/>' . $linkStrNamespace );
 	}
