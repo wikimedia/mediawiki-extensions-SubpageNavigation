@@ -196,7 +196,7 @@ class Tree {
 		}
 
 		if ( !empty( $GLOBALS['wgSubpageNavigationTreeShowChildrenCount'] ) ) {
-			$dbr = wfGetDB( DB_REPLICA );
+			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 			$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $namespace );
 
 		} else {

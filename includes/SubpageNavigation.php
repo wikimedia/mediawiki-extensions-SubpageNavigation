@@ -73,9 +73,9 @@ class SubpageNavigation {
 		$titlesText = array_map( static function ( $value ) {
 			return $value->getText();
 		}, $subpages );
-		$dbr = wfGetDB( DB_REPLICA );
-		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace() );
 		$services = MediaWikiServices::getInstance();
+		$dbr = $services->getConnectionProvider()->getReplicaDatabase();
+		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace() );
 		$linkRenderer = $services->getLinkRenderer();
 		$children = Html::openElement( 'ul', [ 'class' => 'subpage-navigation-list' . ( count( $subpages ) > $limit ? ' incomplete' : '' ) ] ) . "\n";
 		$children .= implode( array_map( static function ( $value ) use ( $title, $linkRenderer, &$childrenCount ) {
@@ -223,7 +223,7 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @return CachedBagOStuff|LocalServerObjectCache|false
+	 * @return BagOStuff|false
 	 */
 	public static function getCache() {
 		if ( !empty( $GLOBALS['wgSubpageNavigationDisableCache'] ) ) {
@@ -249,7 +249,7 @@ class SubpageNavigation {
 	 * @return int
 	 */
 	public static function getTouched( $cond ) {
-		$dbr = wfGetDB( DB_REPLICA );
+		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 		$pageTable = $dbr->tableName( 'page' );
 		$sql = "SELECT page_touched FROM $pageTable WHERE $cond ORDER BY page_touched DESC LIMIT 1";
 
@@ -270,7 +270,7 @@ class SubpageNavigation {
 	 */
 	public static function getSubpages( $prefix, $namespace, $limit = null ) {
 		$callback = function () use ( $prefix, $namespace, $limit ) {
-			$dbr = wfGetDB( DB_REPLICA );
+			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 			$sql = self::subpagesSQL( $dbr, $prefix, $namespace, self::MODE_DEFAULT );
 			if ( $limit ) {
 				$offset = 0;
@@ -298,7 +298,7 @@ class SubpageNavigation {
 			$obj = [];
 		}
 
-		$dbr = wfGetDB( DB_REPLICA );
+		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 		$cond = 'page_namespace = ' . $namespace
 			 . ' AND page_is_redirect = 0'
 			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )

@@ -327,7 +327,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	public function reallyDoQuery( $limit, $offset = false ) {
 		$fname = static::class . '::reallyDoQuery';
 		// $dbr = $this->getRecacheDB();
-		$dbr = wfGetDB( DB_MASTER );
+		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getPrimaryDatabase();
 
 		$mode = $this->getRequest()->getVal( 'mode' );
 		if ( empty( $mode ) ) {
