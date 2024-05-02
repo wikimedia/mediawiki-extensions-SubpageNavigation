@@ -115,6 +115,7 @@ class Tree {
 		// wfMessage( 'toc' )->inLanguage( $lang )->escaped();
 		$title = wfMessage( 'subpagenavigation-toc-title' )->inLanguage( $lang )->escaped();
 
+		// phpcs:disable Generic.Files.LineLength
 		return '<div id="subpagenavigation-toc" style="margin:auto" class="toc" role="navigation" aria-labelledby="subpagenavigation-mw-toc-heading">'
 			// . Html::element( 'input', [
 			//	'type' => 'checkbox',
@@ -140,6 +141,7 @@ class Tree {
 			. '</div>'
 			. $toc
 			. "</div>";
+		// phpcs:enable
 	}
 
 	/**

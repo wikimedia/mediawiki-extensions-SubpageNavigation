@@ -46,7 +46,14 @@ class SubpageNavigationHooks {
 	 * @param MediaWiki|MediaWiki\Actions\ActionEntryPoint $mediaWiki
 	 * @return void
 	 */
-	public static function onBeforeInitialize( \Title &$title, $unused, \OutputPage $output, \User $user, \WebRequest $request, $mediaWiki ) {
+	public static function onBeforeInitialize(
+		\Title &$title,
+		$unused,
+		\OutputPage $output,
+		\User $user,
+		\WebRequest $request,
+		$mediaWiki
+	) {
 		\SubpageNavigation::initialize( $user );
 	}
 

@@ -23,6 +23,7 @@
 
 use MediaWiki\Extension\SubpageNavigation\Tree as SubpageNavigationTree;
 use MediaWiki\MediaWikiServices;
+use Wikimedia\Rdbms\IDatabase;
 
 class SubpageNavigation {
 	const MODE_DEFAULT = 1;
@@ -77,7 +78,10 @@ class SubpageNavigation {
 		$dbr = $services->getConnectionProvider()->getReplicaDatabase();
 		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace() );
 		$linkRenderer = $services->getLinkRenderer();
-		$children = Html::openElement( 'ul', [ 'class' => 'subpage-navigation-list' . ( count( $subpages ) > $limit ? ' incomplete' : '' ) ] ) . "\n";
+		$children = Html::openElement( 'ul', [ 'class' => [
+			'subpage-navigation-list',
+			'incomplete' => count( $subpages ) > $limit,
+		] ] ) . "\n";
 		$children .= implode( array_map( static function ( $value ) use ( $title, $linkRenderer, &$childrenCount ) {
 			$label = substr( $value->getText(), strlen( $title->getDBkey() ) + 1 );
 			$childCount = array_shift( $childrenCount );
@@ -91,7 +95,11 @@ class SubpageNavigation {
 
 		$children .= Html::closeElement( 'ul' );
 		// @see TemplatesOnThisPageFormatter -> format
-		$outText = Html::openElement( 'div', [ 'class' => 'mw-subpageNavigationExplanation mw-editfooter-toggler mw-icon-arrow-expanded' ] );
+		$outText = Html::openElement( 'div', [ 'class' => [
+			'mw-subpageNavigationExplanation',
+			'mw-editfooter-toggler',
+			'mw-icon-arrow-expanded',
+		] ] );
 		$outText .= wfMessage( 'subpagenavigation-list-explanation' )->plain();
 		$outText .= Html::closeElement( 'div' );
 		$outText .= $children;
@@ -325,7 +333,7 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @param \IDatabase $dbr
+	 * @param IDatabase $dbr
 	 * @param array $titlesText
 	 * @param int $namespace
 	 * @return array
@@ -436,11 +444,11 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @param \IDatabase $dbr
+	 * @param IDatabase $dbr
 	 * @param string $prefix
 	 * @param int $namespace
 	 * @param int $mode
-	 * @return string|\ResultWrapper
+	 * @return string
 	 */
 	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode ) {
 		$cond = 'page_namespace = ' . $namespace
