@@ -456,7 +456,7 @@ class SubpageNavigation {
 
 		$pageTable = $dbr->tableName( 'page' );
 
-		// @FIXME use the new MediaWiko's SQL api if possible
+		// @FIXME use the new MediaWiki's SQL api if possible
 
 		switch ( $mode ) {
 			case self::MODE_COUNT:
