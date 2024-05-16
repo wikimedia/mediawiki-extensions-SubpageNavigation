@@ -75,7 +75,7 @@ class SubpageNavigation {
 			return $value->getText();
 		}, $subpages );
 		$services = MediaWikiServices::getInstance();
-		$dbr = $services->getConnectionProvider()->getReplicaDatabase();
+		$dbr = self::wfGetDB( DB_REPLICA );
 		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace() );
 		$linkRenderer = $services->getLinkRenderer();
 		$children = Html::openElement( 'ul', [ 'class' => [
@@ -255,7 +255,7 @@ class SubpageNavigation {
 	 * @return int
 	 */
 	public static function getTouched( $cond ) {
-		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+		$dbr = self::wfGetDB( DB_REPLICA );
 		$pageTable = $dbr->tableName( 'page' );
 		$sql = "SELECT page_touched FROM $pageTable WHERE $cond ORDER BY page_touched DESC LIMIT 1";
 
@@ -276,7 +276,7 @@ class SubpageNavigation {
 	 */
 	public static function getSubpages( $prefix, $namespace, $limit = null ) {
 		$callback = function () use ( $prefix, $namespace, $limit ) {
-			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+			$dbr = self::wfGetDB( DB_REPLICA );
 			$sql = self::subpagesSQL( $dbr, $prefix, $namespace, self::MODE_DEFAULT );
 			if ( $limit ) {
 				$offset = 0;
@@ -304,7 +304,7 @@ class SubpageNavigation {
 			$obj = [];
 		}
 
-		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+		$dbr = self::wfGetDB( DB_REPLICA );
 		$cond = 'page_namespace = ' . $namespace
 			 . ' AND page_is_redirect = 0'
 			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
@@ -568,4 +568,32 @@ WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 			. SubpageNavigationTree::tocList( $treeHtml ) . '</div>';
 	}
 
+	/**
+	 * @param int $db
+	 * @return \Wikimedia\Rdbms\DBConnRef
+	 */
+	public static function wfGetDB( $db ) {
+		if ( !method_exists( MediaWikiServices::class, 'getConnectionProvider' ) ) {
+			return wfGetDB( $db );
+		}
+		$connectionProvider = MediaWikiServices::getInstance()->getConnectionProvider();
+		switch ( $db ) {
+			case DB_PRIMARY:
+				return $connectionProvider->getPrimaryDatabase();
+			case DB_REPLICA:
+			default:
+				return $connectionProvider->getReplicaDatabase();
+		}
+	}
+
+	/**
+	 * @return MediaWiki\Html\Html|Html
+	 */
+	// phpcs:ignore MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
+	public static function HtmlClass() {
+		if ( class_exists( 'MediaWiki\Html\Html' ) ) {
+			return MediaWiki\Html\Html::class;
+		}
+		return Html::class;
+	}
 }

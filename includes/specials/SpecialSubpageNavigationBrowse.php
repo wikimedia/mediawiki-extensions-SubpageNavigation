@@ -22,7 +22,6 @@
  * @copyright Copyright ©2023, https://wikisphere.org
  */
 
-use MediaWiki\Html\Html;
 use MediaWiki\Linker\LinkRenderer;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
@@ -41,11 +40,15 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	/** @var Title */
 	private $title;
 
+	/** @var MediaWiki\Html\Html|Html */
+	private $HtmlClass;
+
 	/**
 	 * @inheritDoc
 	 */
 	public function __construct( $name = 'SubpageNavigationBrowse' ) {
 		parent::__construct( $name, false );
+		$this->HtmlClass = \SubpageNavigation::HtmlClass();
 	}
 
 	/**
@@ -170,7 +173,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		$dbr = $this->getRecacheDB();
 		$this->preprocessResults( $dbr, $res );
 
-		$out->addHTML( Html::openElement( 'div', [ 'class' => 'mw-spcontent' ] ) );
+		$out->addHTML( $this->HtmlClass::openElement( 'div', [ 'class' => 'mw-spcontent' ] ) );
 
 		// Top header and navigation
 		// ***edited
@@ -194,7 +197,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 				// No results to show, so don't bother with "showing X of Y" etc.
 				// -- just let the user know and give up now
 				$this->showEmptyText();
-				$out->addHTML( Html::closeElement( 'div' ) );
+				$out->addHTML( $this->HtmlClass::closeElement( 'div' ) );
 				return;
 			}
 		}
@@ -222,7 +225,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			$out->addHTML( '<p>' . $paging . '</p>' );
 		}
 
-		$out->addHTML( Html::closeElement( 'div' ) );
+		$out->addHTML( $this->HtmlClass::closeElement( 'div' ) );
 	}
 
 	/**
@@ -236,7 +239,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	private function getSpecialLink( $title, $label, $mode, $namespace, $attr = [] ) {
 		$specialPage = SpecialPage::getTitleFor( 'SubpageNavigationBrowse', $title ? $title->getDBkey() : null );
 
-		return Html::rawElement( 'a', array_merge( [
+		return $this->HtmlClass::rawElement( 'a', array_merge( [
 			'href' => wfAppendQuery( $specialPage->getLocalURL(), 'mode=' . $mode . '&namespace=' . $namespace )
 		], $attr ), HtmlArmor::getHtml( $label ) );
 	}
@@ -256,7 +259,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			$msg = !empty( $name ) ? $name : 'Main';
 
 			if ( $mode === (int)$this->getRequest()->getVal( 'namespace' ) ) {
-				$links[] = Html::element( 'strong', [], $msg );
+				$links[] = $this->HtmlClass::element( 'strong', [], $msg );
 			} else {
 				$links[] = $this->getSpecialLink( $this->title, $msg, (int)$this->getRequest()->getVal( 'mode' ), $mode );
 			}
@@ -266,7 +269,8 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			->rawParams( $this->getLanguage()->pipeList( $links ) )
 			->text();
 		$linkStrNamespace = $this->msg( 'subpagenavigation-browse-topnav-namespace' )->parse() . " $linkStrNamespace";
-		$linkStrNamespace = Html::rawElement( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStrNamespace );
+		$linkStrNamespace = $this->HtmlClass::rawElement( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ],
+			$linkStrNamespace );
 
 		$linkDefs = [
 			'default' => 1,
@@ -284,7 +288,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			if ( $mode === (int)$this->getRequest()->getVal( 'mode' )
 				|| ( empty( $this->getRequest()->getVal( 'mode' ) )
 					&& $mode === \SubpageNavigation::MODE_DEFAULT ) ) {
-				$links[] = Html::rawElement( 'strong', [], $msg );
+				$links[] = $this->HtmlClass::rawElement( 'strong', [], $msg );
 			} else {
 				$links[] = $this->getSpecialLink( $this->title, $msg, $mode, (int)$this->getRequest()->getVal( 'namespace' ) );
 			}
@@ -294,7 +298,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 			->rawParams( $this->getLanguage()->pipeList( $links ) )
 			->text();
 		$linkStrMode = $this->msg( 'subpagenavigation-browse-topnav' )->parse() . " $linkStrMode";
-		$linkStrMode = Html::rawElement( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStrMode );
+		$linkStrMode = $this->HtmlClass::rawElement( 'div', [ 'class' => 'mw-subpagenavigation-browse-navigation' ], $linkStrMode );
 
 		$this->getOutput()->setSubtitle( $linkStrMode . '<br/>' . $linkStrNamespace );
 	}
@@ -329,7 +333,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	public function reallyDoQuery( $limit, $offset = false ) {
 		$fname = static::class . '::reallyDoQuery';
 		// $dbr = $this->getRecacheDB();
-		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getPrimaryDatabase();
+		$dbr = \SubpageNavigation::wfGetDB( DB_PRIMARY );
 
 		$mode = $this->getRequest()->getVal( 'mode' );
 		if ( empty( $mode ) ) {

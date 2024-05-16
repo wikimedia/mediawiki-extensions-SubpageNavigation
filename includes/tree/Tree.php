@@ -49,6 +49,9 @@ class Tree {
 	/** @var LinkRenderer */
 	private $linkRenderer;
 
+	/** @var MediaWiki\Html\Html|Html */
+	private $HtmlClass;
+
 	/**
 	 * @return array
 	 */
@@ -64,7 +67,7 @@ class Tree {
 	 */
 	public function __construct( array $options ) {
 		$this->linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
-
+		$this->HtmlClass = \SubpageNavigation::HtmlClass();
 		$this->mOptions = array_merge( $options, [
 			'showcount' => true,
 			// 'namespace' => RequestContext::getMain()->getTitle()->getNamespace()
@@ -112,13 +115,13 @@ class Tree {
 	 */
 	public static function tocList( $toc, Language $lang = null ) {
 		$lang ??= RequestContext::getMain()->getLanguage();
-
+		$htmlClass = \SubpageNavigation::HtmlClass();
 		// wfMessage( 'toc' )->inLanguage( $lang )->escaped();
 		$title = wfMessage( 'subpagenavigation-toc-title' )->inLanguage( $lang )->escaped();
 
 		// phpcs:disable Generic.Files.LineLength
 		return '<div id="subpagenavigation-toc" style="margin:auto" class="toc" role="navigation" aria-labelledby="subpagenavigation-mw-toc-heading">'
-			// . Html::element( 'input', [
+			// . $this->HtmlClass::element( 'input', [
 			//	'type' => 'checkbox',
 			//	'role' => 'button',
 			//	'id' => 'toctogglecheckbox',
@@ -127,7 +130,7 @@ class Tree {
 			//] )
 			. '<input type="checkbox" role="button" id="subpagenavigation-toctogglecheckbox"
 				class="toctogglecheckbox" style="display:none" />'
-			. Html::openElement( 'div', [
+			. $htmlClass::openElement( 'div', [
 				'class' => 'toctitle',
 				'lang' => $lang->getHtmlCode(),
 				'dir' => $lang->getDir(),
@@ -135,7 +138,7 @@ class Tree {
 			] )
 			. '<h2 id="subpagenavigation-mw-toc-heading" style="position:relative;top:auto">' . $title . '</h2>'
 			. '<span class="toctogglespan">'
-			. Html::label( '', 'subpagenavigation-toctogglecheckbox', [
+			. $htmlClass::label( '', 'subpagenavigation-toctogglecheckbox', [
 				'class' => 'toctogglelabel',
 			] )
 			. '</span>'
@@ -163,14 +166,14 @@ class Tree {
 		], 'json' );
 
 		// FIXME: This entirely empty <div class=""></div> appears to be a mistake
-		$outText = Html::openElement( 'div', [ 'class' => '' ] );
-		$outText .= Html::closeElement( 'div' );
+		$outText = $this->HtmlClass::openElement( 'div', [ 'class' => '' ] );
+		$outText .= $this->HtmlClass::closeElement( 'div' );
 
 		$outText .= $this->renderChildren( $title, false );
 
 		$attr['class'] .= ' subpageNavigation-tree mw-pt-translate-navigation noprint';
 
-		return Html::rawElement( 'div', $attr, $outText );
+		return $this->HtmlClass::rawElement( 'div', $attr, $outText );
 	}
 
 	/**
@@ -200,7 +203,7 @@ class Tree {
 		}
 
 		if ( !empty( $GLOBALS['wgSubpageNavigationTreeShowChildrenCount'] ) ) {
-			$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
+			$dbr = \SubpageNavigation::wfGetDB( DB_REPLICA );
 			$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $namespace );
 
 		} else {
@@ -214,7 +217,7 @@ class Tree {
 
 		if ( $threshold ) {
 			$specialPage = SpecialPage::getTitleFor( 'SubpageNavigationBrowse', !empty( $prefix ) ? $prefix : null );
-			$ret .= Html::rawElement( 'div', [
+			$ret .= $this->HtmlClass::rawElement( 'div', [
 					'class' => 'subpagenavigation-article-header-show-more'
 				],
 				$this->linkRenderer->makeKnownLink(
@@ -255,8 +258,8 @@ class Tree {
 		#      Specifically, the CategoryTreeChildren div must be the first
 		#      sibling with nodeName = DIV of the grandparent of the expland link.
 
-		$ret .= Html::openElement( 'div', [ 'class' => 'SubpageNavigationTreeSection' ] );
-		$ret .= Html::openElement( 'div', [ 'class' => 'SubpageNavigationTreeItem' ] );
+		$ret .= $this->HtmlClass::openElement( 'div', [ 'class' => 'SubpageNavigationTreeSection' ] );
+		$ret .= $this->HtmlClass::openElement( 'div', [ 'class' => 'SubpageNavigationTreeItem' ] );
 
 		$attr = [ 'class' => 'SubpageNavigationTreeBullet' ];
 
@@ -284,10 +287,10 @@ class Tree {
 				$linkattr['data-subpagenavigation-state'] = 'expanded';
 			}
 
-			$bullet = Html::element( 'span', $linkattr );
+			$bullet = $this->HtmlClass::element( 'span', $linkattr );
 		}
 
-		$ret .= Html::rawElement( 'span', $attr, $bullet ) . ' ';
+		$ret .= $this->HtmlClass::rawElement( 'span', $attr, $bullet ) . ' ';
 		$ret .= $link;
 
 		// && $this->getOption( 'showcount' )
@@ -300,8 +303,8 @@ class Tree {
 			$children = $this->renderChildren( $title, true );
 		}
 
-		$ret .= Html::closeElement( 'div' );
-		$ret .= Html::openElement(
+		$ret .= $this->HtmlClass::closeElement( 'div' );
+		$ret .= $this->HtmlClass::openElement(
 			'div',
 			[
 				'class' => 'SubpageNavigationTreeChildren',
@@ -313,7 +316,7 @@ class Tree {
 			$ret .= $children;
 		}
 
-		return $ret . Html::closeElement( 'div' ) . Html::closeElement( 'div' );
+		return $ret . $this->HtmlClass::closeElement( 'div' ) . $this->HtmlClass::closeElement( 'div' );
 	}
 
 	/**
@@ -350,6 +353,7 @@ class Tree {
 	 * @return string
 	 */
 	public static function createCountString( IContextSource $context, $count ) {
+		$htmlClass = \SubpageNavigation::HtmlClass();
 		$attr = [
 			'title' => $context->msg( 'subpagenavigation-tree-member-counts' )
 				->numParams( $count )->text(),
@@ -359,7 +363,7 @@ class Tree {
 
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		$ret = $contLang->getDirMark() . ' ';
-		$ret .= Html::rawElement(
+		$ret .= $htmlClass::rawElement(
 			'span',
 			$attr,
 			$context->msg( 'subpagenavigation-tree-member-num' )
