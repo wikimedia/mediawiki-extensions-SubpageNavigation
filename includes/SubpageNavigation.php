@@ -579,6 +579,7 @@ WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 		$connectionProvider = MediaWikiServices::getInstance()->getConnectionProvider();
 		switch ( $db ) {
 			case DB_PRIMARY:
+			case DB_MASTER:
 				return $connectionProvider->getPrimaryDatabase();
 			case DB_REPLICA:
 			default:
