@@ -33,7 +33,7 @@
 		"SidebarBeforeOutput": "SubpageNavigationHooks::onSidebarBeforeOutput",
 		"MediaWikiServices": "SubpageNavigationHooks::onMediaWikiServices",
 		"BeforePageDisplay": "SubpageNavigationHooks::onBeforePageDisplay",
-		"ArticleViewNavigation": "SubpageNavigationHooks::onArticleViewNavigation",
+		"ArticleViewHeader": "SubpageNavigationHooks::onArticleViewHeader",
 		"SkinSubPageSubtitle": "SubpageNavigationHooks::onSkinSubPageSubtitle",
 		"SkinAfterPortlet": "SubpageNavigationHooks::onSkinAfterPortlet",
 		"SkinBuildSidebar": "SubpageNavigationHooks::onSkinBuildSidebar"
