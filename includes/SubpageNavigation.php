@@ -106,7 +106,8 @@ class SubpageNavigation {
 			$outText .= Html::rawElement( 'div', [
 				'class' => 'subpagenavigation-article-header-show-more'
 			],
-				$linkRenderer->makeKnownLink( $specialPage, wfMessage( 'subpagenavigation-list-show-all' )->plain() )
+				$linkRenderer->makeKnownLink( $specialPage, wfMessage( 'subpagenavigation-list-show-all' )->plain(),
+					[], [ 'namespace' => $title->getNamespace() ] )
 			);
 		}
 		// @see EditPage

@@ -65,8 +65,13 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		$parentTitle = null;
 
 		if ( $par ) {
-			$title = Title::newFromText( $par );
+			$title = Title::newFromText( $par, $this->getRequest()->getVal( 'namespace' ) );
 			$parentTitle = \SubpageNavigation::getFirstAncestor( $title );
+
+			// remove namespace
+			$this->prefix = $title->getDBkey() . '/';
+		} else {
+			$this->prefix = '/';
 		}
 
 		$this->title = $title;
@@ -96,8 +101,6 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 				$out->addHTML( '<br />' );
 			}
 		}
-
-		$this->prefix = $par . '/';
 
 		if ( $title ) {
 			$this->namespace = $title->getNamespace();
@@ -226,6 +229,14 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		}
 
 		$out->addHTML( $this->HtmlClass::closeElement( 'div' ) );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getQueryInfo() {
+		// @phan-suppress-next-line PhanTypeMismatchReturnProbablyReal null needed for b/c checks
+		return null;
 	}
 
 	/**
