@@ -113,7 +113,7 @@ class Tree {
 	 * @param Language|null $lang
 	 * @return mixed
 	 */
-	public static function tocList( $toc, Language $lang = null ) {
+	public static function tocList( $toc, ?Language $lang = null ) {
 		$lang ??= RequestContext::getMain()->getLanguage();
 		$htmlClass = \SubpageNavigation::HtmlClass();
 		// wfMessage( 'toc' )->inLanguage( $lang )->escaped();
