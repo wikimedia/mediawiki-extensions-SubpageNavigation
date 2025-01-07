@@ -449,7 +449,20 @@ class SubpageNavigation {
 	 * @param int $mode
 	 * @return string
 	 */
-	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode ) {
+	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode)
+	{
+		switch ( $dbr->getType() ) {
+			case 'sqlite':
+				$sqlConcat = function ( $str1, $str2 ) {
+					return "($str1 || $str2)";
+				};
+				break;
+			default:
+				$sqlConcat = function ( $str1, $str2 ) {
+					return "CONCAT($str1, $str2)";
+				};
+		}
+
 		$cond = 'page_namespace = ' . $namespace
 			 . ' AND page_is_redirect = 0'
 			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
@@ -477,7 +490,7 @@ LEFT JOIN(
     FROM $pageTable
 	WHERE $cond
 ) AS t2
-ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . " 
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 ";
 
@@ -495,13 +508,13 @@ LEFT JOIN(
     FROM $pageTable
 	WHERE $cond
 ) AS t2
-ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
 JOIN(
     SELECT page_title
     FROM $pageTable
 	WHERE $cond
 ) AS t3
-ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
+ON t3.page_title LIKE " . $sqlConcat( "t1.page_title", "'/%'" ) . "
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 ";
 
@@ -522,13 +535,13 @@ LEFT JOIN(
     FROM $pageTable
 	WHERE $cond
 ) AS t2
-ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
 JOIN(
     SELECT page_title
     FROM $pageTable
 	WHERE $cond
 ) AS t3
-ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
+ON t3.page_title LIKE " . $sqlConcat( "t1.page_title", "'/%'" ) . "
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 UNION
 SELECT DISTINCT t1.*
@@ -542,13 +555,13 @@ LEFT JOIN(
     FROM $pageTable
 	WHERE $cond
 ) AS t2
-ON t1.page_title LIKE CONCAT(t2.page_title, '/%')
+ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
 LEFT JOIN(
     SELECT page_title
     FROM $pageTable
 	WHERE $cond
 ) AS t3
-ON t3.page_title LIKE CONCAT(t1.page_title, '/%')
+ON t3.page_title LIKE " . $sqlConcat( "t1.page_title", "'/%'" ) . "
 WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 ";
 
