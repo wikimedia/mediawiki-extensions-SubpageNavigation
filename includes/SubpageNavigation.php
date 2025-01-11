@@ -18,7 +18,7 @@
  * @file
  * @ingroup extensions
  * @author thomas-topway-it <support@topway.it>
- * @copyright Copyright ©2023, https://wikisphere.org
+ * @copyright Copyright ©2023-2025, https://wikisphere.org
  */
 
 use MediaWiki\Extension\SubpageNavigation\Tree as SubpageNavigationTree;
@@ -52,37 +52,62 @@ class SubpageNavigation {
 	}
 
 	/**
+	 * @param string $varName
+	 * @param int $limit
+	 * @return int
+	 */
+	public static function getSetGlobalLimit( $varName, $limit ) {
+		if ( isset( $GLOBALS["wg$varName"] )
+			&& is_numeric( $GLOBALS["wg$varName"] )
+		) {
+			$GLOBALS["wg$varName"] = (int)$GLOBALS["wg$varName"];
+			return (int)$GLOBALS["wg$varName"];
+		}
+		$GLOBALS["wg$varName"] = $limit;
+		return $limit;
+	}
+
+	/**
 	 * @param Title $title
 	 * @return string
 	 */
 	public static function getSubpageHeader( $title ) {
-		// or use getPrefixedDBKey
-		$limit = isset( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesLimit'] )
-			&& is_numeric( $GLOBALS['wgSubpageNavigationArticleHeaderSubpagesLimit'] )
-			? (int)$GLOBALS['wgSubpageNavigationArticleHeaderSubpagesLimit']
-			: 20;
+		$limit = self::getSetGlobalLimit( 'SubpageNavigationArticleHeaderSubpagesLimit', 20 );
 		$limit_ = $limit + 1;
+
+		// set $countLimit as SubpageNavigationArticleHeaderSubpagesLimit if not set
+		$countLimit = self::getSetGlobalLimit( 'SubpageNavigationCountSubpagesLimit', -1 );
+		if ( $countLimit === -1 ) {
+			$countLimit = $limit;
+		}
+
+		// or use getPrefixedDBKey
 		$subpages = self::getSubpages( $title->getDBkey() . '/', $title->getNamespace(), $limit_ );
 
 		if ( empty( $subpages ) ) {
 			return false;
 		}
+
 		$threshold = ( count( $subpages ) === $limit_ );
 		if ( $threshold ) {
 			$subpages = array_slice( $subpages, 0, $limit );
 		}
+
 		$titlesText = array_map( static function ( $value ) {
 			return $value->getText();
 		}, $subpages );
+
 		$services = MediaWikiServices::getInstance();
-		$dbr = self::wfGetDB( DB_REPLICA );
-		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace() );
+		$dbr = self::getDB( DB_REPLICA );
+		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace(), $countLimit );
 		$linkRenderer = $services->getLinkRenderer();
+
 		$children = Html::openElement( 'ul', [ 'class' => [
 			'subpage-navigation-list',
 			'incomplete' => count( $subpages ) > $limit,
 		] ] ) . "\n";
-		$children .= implode( array_map( static function ( $value ) use ( $title, $linkRenderer, &$childrenCount ) {
+
+		$children .= implode( array_map( static function ( $value ) use ( $title, $linkRenderer, &$childrenCount, $countLimit ) {
 			$label = substr( $value->getText(), strlen( $title->getDBkey() ) + 1 );
 			$childCount = array_shift( $childrenCount );
 			$attr = [];
@@ -90,7 +115,7 @@ class SubpageNavigation {
 				$attr['style'] = 'font-weight:bold';
 			}
 			return Html::rawElement( 'li', $attr, $linkRenderer->makeKnownLink( $value,
-				$label . ( !$childCount ? '' : ' (' . $childCount . ')' ) ) );
+				$label . ( !$childCount ? '' : ' (' . self::formatChildCount( $childCount, $countLimit ) . ')' ) ) );
 		}, $subpages ) );
 
 		$children .= Html::closeElement( 'ul' );
@@ -256,7 +281,7 @@ class SubpageNavigation {
 	 * @return int
 	 */
 	public static function getTouched( $cond ) {
-		$dbr = self::wfGetDB( DB_REPLICA );
+		$dbr = self::getDB( DB_REPLICA );
 		$pageTable = $dbr->tableName( 'page' );
 		$sql = "SELECT page_touched FROM $pageTable WHERE $cond ORDER BY page_touched DESC LIMIT 1";
 
@@ -277,7 +302,7 @@ class SubpageNavigation {
 	 */
 	public static function getSubpages( $prefix, $namespace, $limit = null ) {
 		$callback = function () use ( $prefix, $namespace, $limit ) {
-			$dbr = self::wfGetDB( DB_REPLICA );
+			$dbr = self::getDB( DB_REPLICA );
 			$sql = self::subpagesSQL( $dbr, $prefix, $namespace, self::MODE_DEFAULT );
 			if ( $limit ) {
 				$offset = 0;
@@ -305,7 +330,7 @@ class SubpageNavigation {
 			$obj = [];
 		}
 
-		$dbr = self::wfGetDB( DB_REPLICA );
+		$dbr = self::getDB( DB_REPLICA );
 		$cond = 'page_namespace = ' . $namespace
 			 . ' AND page_is_redirect = 0'
 			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
@@ -332,19 +357,32 @@ class SubpageNavigation {
 	}
 
 	/**
+	 * @param int $count
+	 * @param int $countLimit
+	 * @return string
+	 */
+	public static function formatChildCount( $count, $countLimit ) {
+		if ( $count <= $countLimit ) {
+			return $count;
+		}
+		return $countLimit . '+';
+	}
+
+	/**
 	 * @param IDatabase $dbr
 	 * @param array $titlesText
 	 * @param int $namespace
+	 * @param int $countLimit
 	 * @return array
 	 */
-	public static function getChildrenCount( $dbr, $titlesText, $namespace ) {
-		$callback = function () use ( $dbr, $titlesText, $namespace ) {
+	public static function getChildrenCount( $dbr, $titlesText, $namespace, $countLimit ) {
+		$callback = function () use ( $dbr, $titlesText, $namespace, $countLimit ) {
 			// @ATTENTION!! queryMulti has been removed
 			// from Wikimedia\Rdbms\Database since MW 1.4.1 !!
 			if ( !method_exists( $dbr, 'queryMulti' ) ) {
 				// @credits: Zoranzoki21 aka Kizule
-				$sqls = array_map( function ( $text ) use ( $dbr, $namespace ) {
-					return self::subpagesSQL( $dbr, str_replace( ' ', '_', $text ) . '/', $namespace, self::MODE_COUNT );
+				$sqls = array_map( function ( $text ) use ( $dbr, $namespace, $countLimit ) {
+					return self::subpagesSQL( $dbr, str_replace( ' ', '_', $text ) . '/', $namespace, self::MODE_COUNT, $countLimit );
 				}, $titlesText );
 
 				$ret = [];
@@ -362,7 +400,7 @@ class SubpageNavigation {
 			$sqls = [];
 			foreach ( $titlesText as $text ) {
 				$text = str_replace( ' ', '_', $text );
-				$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT );
+				$sqls[] = self::subpagesSQL( $dbr, "{$text}/", $namespace, self::MODE_COUNT, $countLimit );
 			}
 
 			// phpcs:ignore MediaWiki.Usage.MagicConstantClosure.FoundConstantMethod
@@ -447,125 +485,78 @@ class SubpageNavigation {
 	 * @param string $prefix
 	 * @param int $namespace
 	 * @param int $mode
+	 * @param int $countLimit
 	 * @return string
 	 */
-	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode)
-	{
-		switch ( $dbr->getType() ) {
-			case 'sqlite':
-				$sqlConcat = function ( $str1, $str2 ) {
-					return "($str1 || $str2)";
-				};
-				break;
-			default:
-				$sqlConcat = function ( $str1, $str2 ) {
-					return "CONCAT($str1, $str2)";
-				};
-		}
-
+	public static function subpagesSQL( $dbr, $prefix, $namespace, $mode, $countLimit = 0 ) {
+		// @TODO use the new MediaWiki's SQL api
 		$cond = 'page_namespace = ' . $namespace
 			 . ' AND page_is_redirect = 0'
 			 . ( $prefix != '/' ? ' AND page_title LIKE ' . $dbr->addQuotes( $prefix . '%' )
 				: '' );
 
-		$pageTable = $dbr->tableName( 'page' );
+		$sqlConcat = static function ( $str1, $str2 ) use ( $dbr ) {
+			switch ( $dbr->getType() ) {
+				case 'sqlite':
+					return "($str1 || $str2)";
+			}
+			return "CONCAT($str1, $str2)";
+		};
 
-		// @FIXME use the new MediaWiki's SQL api if possible
+		$tableName = $dbr->tableName( 'page' );
+
+		// the NOT EXIST condition
+		// excludes all child pages
+		// except the page itself
+		$directChildren = "SELECT DISTINCT t1.*
+FROM $tableName AS t1
+WHERE $cond AND NOT EXISTS (
+	SELECT 1
+	FROM $tableName AS t2
+	WHERE $cond AND
+	t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
+)";
 
 		switch ( $mode ) {
 			case self::MODE_COUNT:
+			// limit to countLimit, since the computation
+			// cost is a cartesian product
+				return "SELECT COUNT(*) as count
+FROM ( $directChildren LIMIT " . ( $countLimit + 1 ) . " ) as limit_count";
 			case self::MODE_DEFAULT:
-				$select = ( $mode !== self::MODE_COUNT ? ' DISTINCT t1.*' : 'COUNT(*) as count' );
+				// or use CONVERT(t1.page_title USING utf8mb3) COLLATE utf8_general_ci
+				return "$directChildren ORDER BY t1.page_title ASC";
 
-				// the 2nd join is used to select
-				// intermediate pages and to exclude them
-				return "SELECT $select
-FROM (
-		SELECT page_id, page_title, page_namespace
-		FROM $pageTable
-		WHERE $cond
-	) AS t1
-LEFT JOIN(
-    SELECT page_title
-    FROM $pageTable
-	WHERE $cond
-) AS t2
-ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . " 
-WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
-";
-
-			// the 3rd join is used to select
-			// only t1 entries with children
 			case self::MODE_FOLDERS:
-				return "SELECT DISTINCT t1.*
-FROM (
-		SELECT page_id, page_title, page_namespace
-		FROM $pageTable
-		WHERE $cond
-	) AS t1
-LEFT JOIN(
-    SELECT page_title
-    FROM $pageTable
-	WHERE $cond
-) AS t2
-ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
-JOIN(
-    SELECT page_title
-    FROM $pageTable
-	WHERE $cond
-) AS t3
-ON t3.page_title LIKE " . $sqlConcat( "t1.page_title", "'/%'" ) . "
-WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
-";
-
-			// the first select selects only
-			// articles with children (excluding intermediate
-			// pages), and the 2nd select selects
-			// only articles without children
-
 			case self::MODE_FILESYSTEM:
-				return "SELECT DISTINCT t1.*
-FROM (
-		SELECT page_id, page_title, page_namespace
-		FROM $pageTable
+// the inner join selects only articles
+// with children
+				$onlyFolders = "SELECT DISTINCT t1.*
+FROM $tableName AS t1
+	JOIN(
+		SELECT page_title as page_title_
+		FROM $tableName
 		WHERE $cond
-	) AS t1
-LEFT JOIN(
-    SELECT page_title
-    FROM $pageTable
-	WHERE $cond
-) AS t2
-ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
-JOIN(
-    SELECT page_title
-    FROM $pageTable
-	WHERE $cond
-) AS t3
-ON t3.page_title LIKE " . $sqlConcat( "t1.page_title", "'/%'" ) . "
-WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
-UNION
-SELECT DISTINCT t1.*
-FROM (
-		SELECT page_id, page_title, page_namespace
-		FROM $pageTable
-		WHERE $cond
-	) AS t1
-LEFT JOIN(
-    SELECT page_title
-    FROM $pageTable
-	WHERE $cond
-) AS t2
-ON t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
-LEFT JOIN(
-    SELECT page_title
-    FROM $pageTable
-	WHERE $cond
-) AS t3
-ON t3.page_title LIKE " . $sqlConcat( "t1.page_title", "'/%'" ) . "
-WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
-";
+	) AS t2
+ON t2.page_title_ LIKE " . $sqlConcat( "t1.page_title", "'/%'" ) . "
+WHERE $cond AND NOT EXISTS (
+	SELECT 1
+	FROM $tableName AS t2
+	WHERE $cond AND
+	t1.page_title LIKE " . $sqlConcat( "t2.page_title", "'/%'" ) . "
+) ORDER BY t1.page_title ASC";
 
-		} // switch
+				if ( $mode === self::MODE_FOLDERS ) {
+					return $onlyFolders;
+				}
+
+				// theoretical max limit, required to order
+				// with UNION
+				$maxLimit = 65535;
+
+				return "( $onlyFolders limit $maxLimit )
+					UNION ( $directChildren ORDER BY t1.page_title ASC limit $maxLimit )";
+		}
 	}
 
 	/**
@@ -586,9 +577,10 @@ WHERE ( t2.page_title IS NULL OR t1.page_title = t2.page_title )
 	 * @param int $db
 	 * @return \Wikimedia\Rdbms\DBConnRef
 	 */
-	public static function wfGetDB( $db ) {
+	public static function getDB( $db ) {
 		if ( !method_exists( MediaWikiServices::class, 'getConnectionProvider' ) ) {
-			return wfGetDB( $db );
+			// @see https://gerrit.wikimedia.org/r/c/mediawiki/extensions/PageEncryption/+/1038754/comment/4ccfc553_58a41db8/
+			return MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( $db );
 		}
 		$connectionProvider = MediaWikiServices::getInstance()->getConnectionProvider();
 		switch ( $db ) {

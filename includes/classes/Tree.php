@@ -19,7 +19,7 @@
  * @file
  * @ingroup extensions
  * @author thomas-topway-it <support@topway.it>
- * @copyright Copyright ©2023-2024, https://wikisphere.org
+ * @copyright Copyright ©2023-2025, https://wikisphere.org
  */
 
 // @credits: https://www.mediawiki.org/wiki/Extension:CategoryTree
@@ -51,6 +51,9 @@ class Tree {
 
 	/** @var MediaWiki\Html\Html|Html */
 	private $HtmlClass;
+
+	/** @var int */
+	private static $countLimit;
 
 	/**
 	 * @return array
@@ -185,10 +188,17 @@ class Tree {
 		$prefix = ( !$api ? '' : $title->getDBkey() );
 		$namespace = $title->getNamespace();
 
-		$limit = isset( $GLOBALS['wgSubpageNavigationTreeSubpagesLimit'] )
-			&& is_numeric( $GLOBALS['wgSubpageNavigationTreeSubpagesLimit'] )
-			? (int)$GLOBALS['wgSubpageNavigationTreeSubpagesLimit']
-			: 30;
+		$limit = \SubpageNavigation::getSetGlobalLimit( 'SubpageNavigationTreeSubpagesLimit', 30 );
+		$limit_ = $limit + 1;
+
+		// set $countLimit as SubpageNavigationTreeSubpagesLimit if not set
+		$countLimit = \SubpageNavigation::getSetGlobalLimit( 'SubpageNavigationCountSubpagesLimit', -1 );
+		if ( $countLimit === -1 ) {
+			$countLimit = $limit;
+		}
+
+		self::$countLimit = $countLimit;
+
 		$limit_ = $limit + 1;
 		$subpages = \SubpageNavigation::getSubpages( "$prefix/", $namespace, $limit_ );
 
@@ -203,8 +213,8 @@ class Tree {
 		}
 
 		if ( !empty( $GLOBALS['wgSubpageNavigationTreeShowChildrenCount'] ) ) {
-			$dbr = \SubpageNavigation::wfGetDB( DB_REPLICA );
-			$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $namespace );
+			$dbr = \SubpageNavigation::getDB( DB_REPLICA );
+			$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $namespace, $countLimit );
 
 		} else {
 			$childrenCount = array_fill( 0, count( $subpages ), 0 );
@@ -361,13 +371,15 @@ class Tree {
 			'dir' => $context->getLanguage()->getDir()
 		];
 
+		$countStr = \SubpageNavigation::formatChildCount( $count, self::$countLimit );
+
 		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		$ret = $contLang->getDirMark() . ' ';
 		$ret .= $htmlClass::rawElement(
 			'span',
 			$attr,
 			$context->msg( 'subpagenavigation-tree-member-num' )
-				->params( $count )
+				->params( $countStr )
 				->escaped()
 		);
 

@@ -344,7 +344,7 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	public function reallyDoQuery( $limit, $offset = false ) {
 		$fname = static::class . '::reallyDoQuery';
 		// $dbr = $this->getRecacheDB();
-		$dbr = \SubpageNavigation::wfGetDB( DB_PRIMARY );
+		$dbr = \SubpageNavigation::getDB( DB_PRIMARY );
 
 		$mode = $this->getRequest()->getVal( 'mode' );
 		if ( empty( $mode ) ) {
@@ -360,7 +360,11 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		foreach ( $res as $row ) {
 			$titlesText[] = $row->page_title;
 		}
-		$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $this->namespace );
+
+		// set $countLimit as SubpageNavigationArticleHeaderSubpagesLimit if not set
+		$countLimit = \SubpageNavigation::getSetGlobalLimit( 'SubpageNavigationCountSubpagesLimit', 100 );
+
+		$childrenCount = \SubpageNavigation::getChildrenCount( $dbr, $titlesText, $this->namespace, $countLimit );
 
 		foreach ( $res as $i => $row ) {
 			$titlesText[] = $row->page_title;

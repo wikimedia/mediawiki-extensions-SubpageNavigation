@@ -15,7 +15,7 @@
 	},
 	"callback": "SubpageNavigationHooks::onRegistration",
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\SubpageNavigation\\": "includes/tree"
+		"MediaWiki\\Extension\\SubpageNavigation\\": "includes/classes"
 	},
 	"AutoloadClasses": {
 		"SubpageNavigationHooks": "includes/SubpageNavigationHooks.php",
@@ -133,6 +133,9 @@
 		},
 		"SubpageNavigationArticleHeaderSubpagesLimit": {
 			"value": 20
+		},
+		"SubpageNavigationCountSubpagesLimit": {
+			"value": 100
 		},
 		"SubpageNavigationDisableCache": {
 			"value": false
