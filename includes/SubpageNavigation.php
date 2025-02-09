@@ -81,6 +81,18 @@ class SubpageNavigation {
 			$countLimit = $limit;
 		}
 
+		// disable display subpages for specific paths
+		// this is a work-around in case there are too many subpages
+		// a proper solution is a pre-computation of each parent page
+		// involved in an edit
+		if ( is_array( $GLOBALS['wgSubpageNavigationDisablePaths'] ) ) {
+			foreach ( $GLOBALS['wgSubpageNavigationDisablePaths'] as $path ) {
+				if ( strpos( $path, $title->getFullText() ) === 0 ) {
+					return false;
+				}
+			}
+		}
+
 		// or use getPrefixedDBKey
 		$subpages = self::getSubpages( $title->getDBkey() . '/', $title->getNamespace(), $limit_ );
 

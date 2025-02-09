@@ -144,6 +144,9 @@
 			"value": {
 				"showcount": true
 			}
+		},
+		"SubpageNavigationDisablePaths": {
+			"value": []
 		}
 	},
 	"manifest_version": 2
