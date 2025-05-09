@@ -87,7 +87,7 @@ class SubpageNavigation {
 		// involved in an edit
 		if ( is_array( $GLOBALS['wgSubpageNavigationDisablePaths'] ) ) {
 			foreach ( $GLOBALS['wgSubpageNavigationDisablePaths'] as $path ) {
-				if ( strpos( $path, $title->getFullText() ) === 0 ) {
+				if ( strpos( $title->getFullText(), $path ) === 0 ) {
 					return false;
 				}
 			}
