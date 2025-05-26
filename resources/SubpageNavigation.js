@@ -21,7 +21,7 @@
 
 // @credits resources/src/mediawiki.action/mediawiki.action.edit.collapsibleFooter.js
 ( function () {
-	var collapsibleLists, handleOne;
+	let collapsibleLists, handleOne;
 
 	// Collapsible lists of categories and templates
 	// If changing or removing a storeKey, ensure there is a strategy for old keys.
@@ -35,7 +35,7 @@
 	];
 
 	handleOne = function ( $list, $toggler, storeKey ) {
-		var collapsedVal = '0',
+		const collapsedVal = '0',
 			expandedVal = '1',
 			// Default to collapsed if not set
 			isCollapsed = mw.storage.get( storeKey ) !== expandedVal;
@@ -53,19 +53,19 @@
 
 		$toggler.addClass( isCollapsed ? 'mw-icon-arrow-collapsed' : 'mw-icon-arrow-expanded' );
 
-		$list.on( 'beforeExpand.mw-collapsible', function () {
+		$list.on( 'beforeExpand.mw-collapsible', () => {
 			$toggler.removeClass( 'mw-icon-arrow-collapsed' ).addClass( 'mw-icon-arrow-expanded' );
 			mw.storage.set( storeKey, expandedVal );
 		} );
 
-		$list.on( 'beforeCollapse.mw-collapsible', function () {
+		$list.on( 'beforeCollapse.mw-collapsible', () => {
 			$toggler.removeClass( 'mw-icon-arrow-expanded' ).addClass( 'mw-icon-arrow-collapsed' );
 			mw.storage.set( storeKey, collapsedVal );
 		} );
 	};
 
-	mw.hook( 'wikipage.content' ).add( function ( $contentText ) {
-		var i;
+	mw.hook( 'wikipage.content' ).add( ( $contentText ) => {
+		let i;
 		for ( i = 0; i < collapsibleLists.length; i++ ) {
 			// Pass to a function for iteration-local variables
 			handleOne(

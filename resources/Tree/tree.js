@@ -23,7 +23,7 @@
 // @credits: https://www.mediawiki.org/wiki/Extension:CategoryTree
 
 ( function () {
-	var loadChildren,
+	let loadChildren,
 		config = require( './data.json' );
 		// config = {defaultCtOptions: {} };
 
@@ -32,7 +32,7 @@
 	 */
 	function expandNode( $link ) {
 		// Show the children node
-		var $children = $link.parents( '.SubpageNavigationTreeItem' )
+		const $children = $link.parents( '.SubpageNavigationTreeItem' )
 			.siblings( '.SubpageNavigationTreeChildren' )
 			.css( 'display', '' );
 
@@ -65,7 +65,7 @@
 	 * @this {Element} SubpageNavigationTreeToggle
 	 */
 	function handleNode() {
-		var $link = $( this );
+		const $link = $( this );
 		if ( $link.attr( 'data-subpagenavigation-state' ) === 'collapsed' ) {
 			expandNode( $link );
 		} else {
@@ -94,13 +94,13 @@
 	 * @param {jQuery} $children
 	 */
 	loadChildren = function ( $link, $children ) {
-		var $linkParentCTTag, ctTitle, ctOptions;
+		let $linkParentCTTag, ctTitle, ctOptions;
 
 		/**
 		 * Error callback
 		 */
 		function error() {
-			var $retryLink;
+			let $retryLink;
 
 			$retryLink = $( '<a>' )
 				.text( mw.msg( 'subpagenavigation-tree-retry' ) )
@@ -108,7 +108,7 @@
 					role: 'button',
 					tabindex: 0
 				} )
-				.on( 'click keypress', function ( e ) {
+				.on( 'click keypress', ( e ) => {
 					if (
 						e.type === 'click' ||
 						e.type === 'keypress' && e.which === 13
@@ -145,8 +145,8 @@
 			options: ctOptions,
 			uselang: mw.config.get( 'wgUserLanguage' ),
 			formatversion: 2
-		} ).done( function ( data ) {
-			var $data;
+		} ).done( ( data ) => {
+			let $data;
 			data = data[ 'subpagenavigation-tree' ].html;
 
 			if ( data === '' ) {
@@ -162,21 +162,21 @@
 		} ).fail( error );
 	};
 
-	$( function () {
+	$( () => {
 		// eslint-disable-next-line no-jquery/no-global-selector
 		attachHandler( $( '#subpagenavigation-tree' ) );
 	} );
 
 	// @see mediawiki.toc/toc.js
 	function initToc( tocNode ) {
-		var hidden = false,
+		let hidden = false,
 			toggleNode = tocNode.querySelector( '.toctogglecheckbox' );
 
 		if ( !toggleNode ) {
 			return;
 		}
 
-		toggleNode.addEventListener( 'change', function () {
+		toggleNode.addEventListener( 'change', () => {
 			hidden = !hidden;
 			mw.cookie.set( 'subpagenavigation-hidetoc', hidden ? '1' : null );
 		} );

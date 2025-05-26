@@ -19,20 +19,20 @@
  * @copyright Copyright © 2023, https://wikisphere.org
  */
 
-$( function () {
+$( () => {
 	// display every 3 days
 	if (
 		!mw.config.get( 'subpagenavigation-disableVersionCheck' ) &&
 		!mw.cookie.get( 'subpagenavigation-check-latest-version' )
 	) {
-		mw.loader.using( 'mediawiki.api', function () {
-			var payload = {
+		mw.loader.using( 'mediawiki.api', () => {
+			const payload = {
 				action: 'subpagenavigation-check-latest-version'
 			};
-			new mw.Api().postWithToken( 'csrf', payload ).done( function ( res ) {
+			new mw.Api().postWithToken( 'csrf', payload ).done( ( res ) => {
 				if ( payload.action in res ) {
 					if ( res[ payload.action ].result === 2 ) {
-						var messageWidget = new OO.ui.MessageWidget( {
+						const messageWidget = new OO.ui.MessageWidget( {
 							type: 'warning',
 							label: new OO.ui.HtmlSnippet(
 								mw.msg( 'subpagenavigation-jsmodule-outdated-version' )
@@ -40,8 +40,8 @@ $( function () {
 							// *** this does not work before ooui v0.43.0
 							showClose: true
 						} );
-						var closeFunction = function () {
-							var three_days = 3 * 86400;
+						const closeFunction = function () {
+							const three_days = 3 * 86400;
 							mw.cookie.set( 'subpagenavigation-check-latest-version', true, {
 								path: '/',
 								expires: three_days
@@ -59,7 +59,7 @@ $( function () {
 							!messageWidget.$element.hasClass( 'oo-ui-messageWidget-showClose' )
 						) {
 							messageWidget.$element.addClass( 'oo-ui-messageWidget-showClose' );
-							var closeButton = new OO.ui.ButtonWidget( {
+							const closeButton = new OO.ui.ButtonWidget( {
 								classes: [ 'oo-ui-messageWidget-close' ],
 								framed: false,
 								icon: 'close',
