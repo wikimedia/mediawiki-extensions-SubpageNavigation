@@ -18,7 +18,7 @@
  * @file
  * @ingroup extensions
  * @author thomas-topway-it <support@topway.it>
- * @copyright Copyright ©2023-2024, https://wikisphere.org
+ * @copyright Copyright ©2023-2025, https://wikisphere.org
  */
 
 use MediaWiki\Extension\SubpageNavigation\Tree as SubpageNavigationTree;
@@ -175,10 +175,23 @@ class SubpageNavigationHooks {
 
 		if ( \SubpageNavigation::breadcrumbIsEnabled( $skin ) ) {
 			$titleText = $outputPage->getPageTitle();
+			$strStrip = strip_tags( $titleText );
+			$current = '';
 
-			if ( \SubpageNavigation::parseSubpage( $titleText, $current ) ) {
-				$outputPage->setPageTitle( $current );
+			// update $current by reference
+			\SubpageNavigation::parseSubpage( $titleText, $current );
+
+			if ( $strStrip !== $titleText ) {
+				preg_match_all( '/<span[^>]*>(.*?)<\/span>/i', $titleText, $matches, PREG_OFFSET_CAPTURE );
+				foreach ( $matches[1] as $index => [ $innerText, $offset ] ) {
+					if ( trim( $innerText ) === $current ) {
+						$current = $matches[0][$index][0];
+						break;
+					}
+				}
 			}
+
+			$outputPage->setPageTitle( $current );
 		}
 	}
 

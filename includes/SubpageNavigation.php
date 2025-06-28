@@ -166,7 +166,7 @@ class SubpageNavigation {
 	 * @return string
 	 */
 	public static function breadCrumbNavigation( $title ) {
-		$titleText = $title->getText();
+		$titleText = $title->getFullText();
 		$services = MediaWikiServices::getInstance();
 		$linkRenderer = $services->getLinkRenderer();
 		$separator = '&#32;/&#32;';
@@ -174,7 +174,7 @@ class SubpageNavigation {
 		$specialPages = SpecialPage::getTitleFor( 'Specialpages' );
 		if ( $title->isSpecialPage() && $title->getFullText() !== $specialPages->getFullText() ) {
 			$specialPageFactory = $services->getSpecialPageFactory();
-			$page = $specialPageFactory->getPage( $titleText );
+			$page = $specialPageFactory->getPage( $title->getText() );
 			// invalid special page
 			if ( !$page ) {
 				return false;
@@ -183,6 +183,7 @@ class SubpageNavigation {
 				. $separator . $page->getDescription();
 		}
 		$links = [];
+		$current = '';
 		// phpcs:ignore Generic.ControlStructures.DisallowYodaConditions.Found
 		if ( false === self::parseSubpage( $titleText, $current, $links ) ) {
 			return false;
@@ -203,6 +204,11 @@ class SubpageNavigation {
 
 		$strStrip = strip_tags( $titleText );
 		if ( strpos( $strStrip, '/' ) === false ) {
+			$current = $strStrip;
+			$title_ = Title::newFromText( $current );
+			if ( $title_->getNamespace() !== NS_MAIN ) {
+				$current = $title_->getText();
+			}
 			return false;
 		}
 
@@ -227,9 +233,11 @@ class SubpageNavigation {
 			}
 			$growinglink .= '/';
 		}
+
 		if ( !count( $arr ) ) {
 			return false;
 		}
+
 		$title = Title::newFromText( $strStrip );
 		if ( is_object( $title ) && $title->isKnown() ) {
 			array_pop( $arr );
@@ -237,10 +245,6 @@ class SubpageNavigation {
 		// handle non existing article
 		} else {
 			$current = substr( $title->getText(), strlen( $currentTitle->getText() ) + 1 );
-		}
-
-		if ( $strStrip !== $titleText ) {
-			$current = str_replace( $strStrip, $current, $titleText );
 		}
 
 		return true;
