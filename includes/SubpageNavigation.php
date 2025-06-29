@@ -206,7 +206,7 @@ class SubpageNavigation {
 		if ( strpos( $strStrip, '/' ) === false ) {
 			$current = $strStrip;
 			$title_ = Title::newFromText( $current );
-			if ( $title_->getNamespace() !== NS_MAIN ) {
+			if ( $title_ && $title_->getNamespace() !== NS_MAIN ) {
 				$current = $title_->getText();
 			}
 			return false;
