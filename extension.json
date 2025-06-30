@@ -15,7 +15,7 @@
 	},
 	"callback": "SubpageNavigationHooks::onRegistration",
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\SubpageNavigation\\": "includes/classes"
+		"MediaWiki\\Extension\\SubpageNavigation\\": "includes/classes/"
 	},
 	"AutoloadClasses": {
 		"SubpageNavigationHooks": "includes/SubpageNavigationHooks.php",
