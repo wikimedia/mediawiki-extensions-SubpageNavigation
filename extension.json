@@ -15,6 +15,7 @@
 	},
 	"callback": "SubpageNavigationHooks::onRegistration",
 	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\SubpageNavigation\\Aliases\\": "includes/aliases/",
 		"MediaWiki\\Extension\\SubpageNavigation\\": "includes/classes/"
 	},
 	"AutoloadClasses": {
@@ -53,6 +54,30 @@
 		},
 		"subpagenavigation-check-latest-version": "SubpageNavigationApiCheckLatestVersion"
 	},
+	"GroupPermissions": {
+		"sysop": {
+			"subpagenavigation-can-browse-subpages": true
+		},
+		"bureaucrat": {
+			"subpagenavigation-can-browse-subpages": true
+		},
+		"contactmanager-admin": {
+			"subpagenavigation-can-browse-subpages": true
+		}
+	},
+	"AddGroups": {
+		"subpagenavigation-admin": [
+			"subpagenavigation-admin"
+		]
+	},
+	"RemoveGroups": {
+		"subpagenavigation-admin": [
+			"subpagenavigation-admin"
+		]
+	},
+	"AvailableRights": [
+		"subpagenavigation-can-browse-subpages"
+	],
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",
 		"remoteExtPath": "SubpageNavigation/resources"
@@ -147,6 +172,13 @@
 		},
 		"SubpageNavigationDisablePaths": {
 			"value": []
+		},
+		"SubpageNavigationDisableSidebarLi": {
+			"value": false
+		},
+		"SubpageNavigationRestrictNamespaces": {
+			"value": [],
+			"merge_strategy": "provide_default"
 		}
 	},
 	"manifest_version": 2

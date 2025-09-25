@@ -10,6 +10,7 @@
 	"apihelp-subpagenavigation-check-latest-version-summary": "A label message",
 	"subpagenavigationbrowse": "A label message",
 	"subpagenavigation-sidebar": "A label message",
+	"subpagenavigation-sidebar-tools": "A label message",
 	"subpagenavigation-list-explanation": "A label message",
 	"subpagenavigation-specialsubpages-return_": "A label message",
 	"subpagenavigation-specialsubpages-return": "A label message",
@@ -23,6 +24,10 @@
 	"apihelp-subpagenavigation-tree-summary": "A label message",
 	"apihelp-subpagenavigation-tree-param-title": "A label message",
 	"apihelp-subpagenavigation-tree-param-options": "A label message",
+
+	"right-subpagenavigation-can-browse-subpages": "A label message",
+	"action-subpagenavigation-can-browse-subpages": "A label message",
+	"group-subpagenavigation-admin": "SubpageNavigation admin",
 
 	"subpagenavigation-chameleon-enable-tree": "A label message",
 	"subpagenavigation-toc-title": "A label message",

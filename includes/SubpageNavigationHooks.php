@@ -38,7 +38,7 @@ class SubpageNavigationHooks {
 	}
 
 	/**
-	 * @param Title &$title
+	 * @param Title|MediaWiki\Title\Title &$title
 	 * @param null $unused
 	 * @param OutputPage $output
 	 * @param User $user
@@ -47,7 +47,7 @@ class SubpageNavigationHooks {
 	 * @return void
 	 */
 	public static function onBeforeInitialize(
-		\Title &$title,
+		&$title,
 		$unused,
 		\OutputPage $output,
 		\User $user,
@@ -92,6 +92,15 @@ class SubpageNavigationHooks {
 		}
 
 		$title = $skin->getTitle();
+
+		$restrictNamespaces = $GLOBALS['wgSubpageNavigationRestrictNamespaces'];
+		if (
+			is_array( $restrictNamespaces ) &&
+			!empty( $restrictNamespaces ) &&
+			!in_array( $title->getNamespace(), $restrictNamespaces )
+		) {
+			return;
+		}
 
 		if ( $title->isSpecialPage() ) {
 			return;
@@ -201,16 +210,24 @@ class SubpageNavigationHooks {
 	 * @return void
 	 */
 	public static function onSidebarBeforeOutput( $skin, &$sidebar ) {
+		$user = $skin->getUser();
+		if ( !$user->isAllowed( 'subpagenavigation-can-browse-subpages' ) ) {
+			return;
+		}
+
+		if ( \SubpageNavigation::hasSubpages( $skin->getTitle() ) ) {
+			$specialpage_title = SpecialPage::getTitleFor( 'SubpageNavigationBrowse', $skin->getTitle() );
+			$sidebar['TOOLBOX'][] = [
+				'text'   => wfMessage( 'subpagenavigation-sidebar-tools' )->text(),
+				'href'   => $specialpage_title->getLocalURL()
+			];
+		}
+
 		if ( !empty( $GLOBALS['wgSubpageNavigationDisableSidebarLink'] ) ) {
 			return;
 		}
 
 		$specialpage_title = SpecialPage::getTitleFor( 'SubpageNavigationBrowse' );
-		$sidebar['TOOLBOX'][] = [
-			'text'   => wfMessage( 'subpagenavigation-sidebar' )->text(),
-			'href'   => $specialpage_title->getLocalURL()
-		];
-
 		$sidebar['subpagenavigation-tree'][] = [
 			'text'   => wfMessage( 'subpagenavigation-sidebar' )->text(),
 			'href'   => $specialpage_title->getLocalURL()

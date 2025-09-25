@@ -21,6 +21,8 @@
  * @copyright Copyright ©2023-2025, https://wikisphere.org
  */
 
+use MediaWiki\Extension\SubpageNavigation\Aliases\Html as HtmlClass;
+use MediaWiki\Extension\SubpageNavigation\Aliases\Title as TitleClass;
 use MediaWiki\Extension\SubpageNavigation\Tree as SubpageNavigationTree;
 use MediaWiki\MediaWikiServices;
 use Wikimedia\Rdbms\IDatabase;
@@ -68,7 +70,7 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @param Title $title
+	 * @param Title|MediaWiki\Title\Title $title
 	 * @return string
 	 */
 	public static function getSubpageHeader( $title ) {
@@ -114,7 +116,7 @@ class SubpageNavigation {
 		$childrenCount = self::getChildrenCount( $dbr, $titlesText, $title->getNamespace(), $countLimit );
 		$linkRenderer = $services->getLinkRenderer();
 
-		$children = Html::openElement( 'ul', [ 'class' => [
+		$children = HtmlClass::openElement( 'ul', [ 'class' => [
 			'subpage-navigation-list',
 			'incomplete' => count( $subpages ) > $limit,
 		] ] ) . "\n";
@@ -126,13 +128,13 @@ class SubpageNavigation {
 			if ( $childCount > 0 ) {
 				$attr['style'] = 'font-weight:bold';
 			}
-			return Html::rawElement( 'li', $attr, $linkRenderer->makeKnownLink( $value,
+			return HtmlClass::rawElement( 'li', $attr, $linkRenderer->makeKnownLink( $value,
 				$label . ( !$childCount ? '' : ' (' . self::formatChildCount( $childCount, $countLimit ) . ')' ) ) );
 		}, $subpages ) );
 
-		$children .= Html::closeElement( 'ul' );
+		$children .= HtmlClass::closeElement( 'ul' );
 		// @see TemplatesOnThisPageFormatter -> format
-		$outText = Html::element( 'div', [ 'class' => [
+		$outText = HtmlClass::element( 'div', [ 'class' => [
 			'mw-subpageNavigationExplanation',
 			'mw-editfooter-toggler',
 			'mw-icon-arrow-expanded',
@@ -140,7 +142,7 @@ class SubpageNavigation {
 		$outText .= $children;
 		if ( $threshold ) {
 			$specialPage = SpecialPage::getTitleFor( 'SubpageNavigationBrowse', $title->getDBkey() );
-			$outText .= Html::rawElement( 'div', [
+			$outText .= HtmlClass::rawElement( 'div', [
 				'class' => 'subpagenavigation-article-header-show-more'
 			],
 				$linkRenderer->makeKnownLink( $specialPage, wfMessage( 'subpagenavigation-list-show-all' )->plain(),
@@ -148,11 +150,11 @@ class SubpageNavigation {
 			);
 		}
 		// @see EditPage
-		// return Html::rawElement( 'div', [ 'class' => 'subpageHeader' ],
+		// return HtmlClass::rawElement( 'div', [ 'class' => 'subpageHeader' ],
 		// 	$templateListFormatter->format( $templates, $type )
 		// );
 
-		return Html::rawElement(
+		return HtmlClass::rawElement(
 			'div',
 			[
 				'class' => 'subpageNavigation mw-pt-translate-navigation noprint'
@@ -162,7 +164,7 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @param Title $title
+	 * @param Title|MediaWiki\Title\Title $title
 	 * @return string
 	 */
 	public static function breadCrumbNavigation( $title ) {
@@ -205,7 +207,7 @@ class SubpageNavigation {
 		$strStrip = strip_tags( $titleText );
 		if ( strpos( $strStrip, '/' ) === false ) {
 			$current = $strStrip;
-			$title_ = Title::newFromText( $current );
+			$title_ = TitleClass::newFromText( $current );
 			if ( $title_ && $title_->getNamespace() !== NS_MAIN ) {
 				$current = $title_->getText();
 			}
@@ -221,7 +223,7 @@ class SubpageNavigation {
 		foreach ( $links as $key => $link ) {
 			$growinglink .= $link;
 			$display .= $link;
-			$linkObj = Title::newFromText( $growinglink );
+			$linkObj = TitleClass::newFromText( $growinglink );
 
 			if ( is_object( $linkObj ) && $linkObj->isKnown() ) {
 				$currentTitle = $linkObj;
@@ -238,7 +240,7 @@ class SubpageNavigation {
 			return false;
 		}
 
-		$title = Title::newFromText( $strStrip );
+		$title = TitleClass::newFromText( $strStrip );
 		if ( is_object( $title ) && $title->isKnown() ) {
 			array_pop( $arr );
 
@@ -251,7 +253,7 @@ class SubpageNavigation {
 	}
 
 	/**
-	 * @param Title $title
+	 * @param Title|MediaWiki\Title\Title $title
 	 * @return Title
 	 */
 	public static function getFirstAncestor( $title ) {
@@ -261,7 +263,7 @@ class SubpageNavigation {
 		$ret = null;
 		foreach ( $links as $key => $link ) {
 			$growinglink .= $link;
-			$linkObj = Title::newFromText( $growinglink );
+			$linkObj = TitleClass::newFromText( $growinglink );
 			if ( is_object( $linkObj ) && $linkObj->isKnown() ) {
 				$ret = $linkObj;
 			}
@@ -328,7 +330,7 @@ class SubpageNavigation {
 			$res = $dbr->query( $sql, __METHOD__ );
 			$ret = [];
 			foreach ( $res as $row ) {
-				$title = Title::newFromRow( $row );
+				$title = TitleClass::newFromRow( $row );
 				if ( $title->isKnown() ) {
 					$ret[] = $title;
 				}
@@ -497,6 +499,21 @@ class SubpageNavigation {
 	}
 
 	/**
+	 * @param Title|MediaWiki\Title\Title $title
+	 * @return bool
+	 */
+	public static function hasSubpages( $title ) {
+		$dbr = self::getDB( DB_REPLICA );
+		$sql = self::subpagesSQL( $dbr, $title->getDBkey() . '/', $title->getNamespace(), self::MODE_COUNT, 1 );
+		$res = $dbr->query( $sql, __METHOD__ );
+		$row = $res->fetchObject();
+		if ( !$row ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * @param IDatabase $dbr
 	 * @param string $prefix
 	 * @param int $namespace
@@ -606,16 +623,5 @@ WHERE $cond AND NOT EXISTS (
 			default:
 				return $connectionProvider->getReplicaDatabase();
 		}
-	}
-
-	/**
-	 * @return MediaWiki\Html\Html|Html
-	 */
-	// phpcs:ignore MediaWiki.NamingConventions.LowerCamelFunctionsName.FunctionName
-	public static function HtmlClass() {
-		if ( class_exists( 'MediaWiki\Html\Html' ) ) {
-			return MediaWiki\Html\Html::class;
-		}
-		return Html::class;
 	}
 }

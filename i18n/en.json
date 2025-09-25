@@ -9,6 +9,7 @@
 	"specialpages-group-subpagenavigation": "SubpageNavigation",
 	"apihelp-subpagenavigation-check-latest-version-summary": "subpagenavigation check latest version",
 	"subpagenavigationbrowse": "Browse subpages",
+	"subpagenavigation-sidebar-tools": "Page subpages",
 	"subpagenavigation-sidebar": "Browse subpages",
 	"subpagenavigation-list-explanation": "Subpages:",
 	"subpagenavigation-specialsubpages-return_": "← [[$1|$2]]",
@@ -24,6 +25,10 @@
 	"apihelp-subpagenavigation-tree-summary": "subpagenavigation tree summary",
 	"apihelp-subpagenavigation-tree-param-title": "subpagenavigation tree param title",
 	"apihelp-subpagenavigation-tree-param-options": "subpagenavigation tree param options",
+
+	"right-subpagenavigation-can-browse-subpages": "SubpageNavigation can browse subpages",
+	"action-subpagenavigation-can-browse-subpages": "SubpageNavigation can browse subpages",
+	"group-subpagenavigation-admin": "SubpageNavigation admin",
 
 	"subpagenavigation-chameleon-enable-tree": "Tree disabled, set <code>$wgSubpageNavigationShowTree = true;</code> in LocalSettings.php",
 	"subpagenavigation-toc-title": "Pages",
