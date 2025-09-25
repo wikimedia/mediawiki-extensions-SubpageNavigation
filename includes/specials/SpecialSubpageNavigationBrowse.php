@@ -58,6 +58,12 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 		$this->setHeaders();
 		$this->outputHeader();
 
+		$user = $this->getUser();
+		if ( !$user->isAllowed( 'subpagenavigation-can-browse-subpages' ) ) {
+			$this->displayRestrictionError();
+			return;
+		}
+
 		$out = $this->getOutput();
 		$title = null;
 		$parentTitle = null;
