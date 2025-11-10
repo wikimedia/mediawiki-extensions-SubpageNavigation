@@ -40,7 +40,7 @@
 		"SkinBuildSidebar": "SubpageNavigationHooks::onSkinBuildSidebar"
 	},
 	"ConfigRegistry": {
-		"subpagenavigation": "GlobalVarConfig::newInstance"
+		"subpagenavigation": "MediaWiki\\Extension\\SubpageNavigation\\Aliases\\GlobalVarConfig::newInstance"
 	},
 	"SpecialPages": {
 		"SubpageNavigationBrowse": "SpecialSubpageNavigationBrowse"
