@@ -26,8 +26,8 @@
 	"apihelp-subpagenavigation-tree-param-title": "subpagenavigation tree param title",
 	"apihelp-subpagenavigation-tree-param-options": "subpagenavigation tree param options",
 
-	"right-subpagenavigation-can-browse-subpages": "SubpageNavigation can browse subpages",
-	"action-subpagenavigation-can-browse-subpages": "SubpageNavigation can browse subpages",
+	"right-subpagenavigation-can-browse-subpages": "Browse subpages (SubpageNavigation)",
+	"action-subpagenavigation-can-browse-subpages": "browse subpages (SubpageNavigation)",
 	"group-subpagenavigation-admin": "SubpageNavigation admin",
 
 	"subpagenavigation-chameleon-enable-tree": "Tree disabled, set <code>$wgSubpageNavigationShowTree = true;</code> in LocalSettings.php",
