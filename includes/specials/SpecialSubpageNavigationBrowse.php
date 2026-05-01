@@ -42,11 +42,8 @@ class SpecialSubpageNavigationBrowse extends QueryPage {
 	/** @var Title|MediaWiki\Title\Title */
 	private $title;
 
-	/**
-	 * @inheritDoc
-	 */
-	public function __construct( $name = 'SubpageNavigationBrowse' ) {
-		parent::__construct( $name, false );
+	public function __construct() {
+		parent::__construct( 'SubpageNavigationBrowse' );
 	}
 
 	/**
